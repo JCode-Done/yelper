@@ -1,12 +1,6 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-} from 'react-native';
-import { Image } from 'expo-image';
+import { Image } from "expo-image";
+import React from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 /**
  * Horizontal scrollable thumbnail component
@@ -19,7 +13,7 @@ import { Image } from 'expo-image';
 const HorizontalThumbnails = ({
   items = [],
   onThumbnailPress,
-  thumbnailSize = 160,
+  thumbnailSize = 140,
   thumbnailGap = 12,
 }) => {
   if (!items.length) return null;
@@ -44,11 +38,19 @@ const HorizontalThumbnails = ({
           {item.image ? (
             <Image
               source={{ uri: item.image }}
-              style={[styles.thumbnail, { width: thumbnailSize, height: thumbnailSize }]}
+              style={[
+                styles.thumbnail,
+                { width: thumbnailSize, height: thumbnailSize },
+              ]}
               contentFit="cover"
             />
           ) : (
-            <View style={[styles.thumbnailPlaceholder, { width: thumbnailSize, height: thumbnailSize }]} />
+            <View
+              style={[
+                styles.thumbnailPlaceholder,
+                { width: thumbnailSize, height: thumbnailSize },
+              ]}
+            />
           )}
           {item.label != null && (
             <Text style={styles.label} numberOfLines={2}>
@@ -67,14 +69,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   thumbnailWrapper: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   thumbnail: {
     borderRadius: 8,
   },
   thumbnailPlaceholder: {
     borderRadius: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
   },
   thumbnailPressed: {
     opacity: 0.8,
@@ -82,8 +84,8 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 4,
     fontSize: 11,
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
     maxWidth: 160,
   },
 });
