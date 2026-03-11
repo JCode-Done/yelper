@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import HorizontalThumbnails from '../components/HorizontalThumbnails';
-import { MOCK_GAMES } from '../api/boardgames';
+import { useNavigation } from "@react-navigation/native";
+import { Image } from "expo-image";
+import React, { useState } from "react";
 import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
   ActivityIndicator,
+  FlatList,
   Pressable,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Image } from 'expo-image';
-import SearchBar from '../components/SearchBar';
-import { searchBoardGames } from '../api/boardgames';
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { MOCK_GAMES, searchBoardGames } from "../api/boardgames";
+import CategoryIcons from "../components/CategoryIcons";
+import HorizontalThumbnails from "../components/HorizontalThumbnails";
+import SearchBar from "../components/SearchBar";
 
 const SearchScreen = () => {
   const navigation = useNavigation();
@@ -35,11 +35,18 @@ const SearchScreen = () => {
 
   const renderItem = ({ item }) => (
     <Pressable
-      style={({ pressed }) => [styles.resultItem, pressed && styles.resultItemPressed]}
-      onPress={() => navigation.navigate('GameDetail', { game: item })}
+      style={({ pressed }) => [
+        styles.resultItem,
+        pressed && styles.resultItemPressed,
+      ]}
+      onPress={() => navigation.navigate("GameDetail", { game: item })}
     >
       {item.image ? (
-        <Image source={{ uri: item.image }} style={styles.thumbnail} contentFit="cover" />
+        <Image
+          source={{ uri: item.image }}
+          style={styles.thumbnail}
+          contentFit="cover"
+        />
       ) : (
         <View style={styles.thumbnail} />
       )}
@@ -48,8 +55,10 @@ const SearchScreen = () => {
           {item.name}
         </Text>
         <Text style={styles.resultMeta}>
-          {item.rating != null && <Text style={styles.ratingText}>★ {item.rating.toFixed(1)}</Text>}
-          {item.rating != null && item.year != null && ' · '}
+          {item.rating != null && (
+            <Text style={styles.ratingText}>★ {item.rating.toFixed(1)}</Text>
+          )}
+          {item.rating != null && item.year != null && " · "}
           {item.year != null && item.year}
         </Text>
       </View>
@@ -59,6 +68,23 @@ const SearchScreen = () => {
   return (
     <View style={styles.container}>
       <SearchBar onSearchSubmit={handleSearch} />
+      <CategoryIcons />
+      <View style={styles.hotnessSection}>
+        <Text style={styles.hotnessTitle}>Hotness</Text>
+        <HorizontalThumbnails
+          items={MOCK_GAMES.filter(
+            (g) => g.id && (g.image || g.imageLarge),
+          ).map((g) => ({
+            id: g.id,
+            image: g.image || g.imageLarge,
+            label: g.name,
+          }))}
+          onThumbnailPress={(item) => {
+            const game = MOCK_GAMES.find((m) => m.id === item.id);
+            if (game) navigation.navigate("GameDetail", { game });
+          }}
+        />
+      </View>
       {loading && (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color="#2E7D32" />
@@ -74,19 +100,6 @@ const SearchScreen = () => {
           data={results}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
-          ListHeaderComponent={
-            <HorizontalThumbnails
-              items={MOCK_GAMES.filter((g) => g.id && (g.image || g.imageLarge)).map((g) => ({
-                id: g.id,
-                image: g.image || g.imageLarge,
-                label: g.name,
-              }))}
-              onThumbnailPress={(item) => {
-                const game = MOCK_GAMES.find((m) => m.id === item.id);
-                if (game) navigation.navigate('GameDetail', { game });
-              }}
-            />
-          }
           ListEmptyComponent={
             !loading && results.length === 0 ? (
               <Text style={styles.emptyText}>
@@ -104,42 +117,53 @@ const SearchScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
+  },
+  hotnessSection: {
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  hotnessTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginHorizontal: 15,
+    marginBottom: 8,
   },
   loading: {
     padding: 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
   errorContainer: {
     padding: 20,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: "#FEE2E2",
     marginHorizontal: 15,
     marginTop: 10,
     borderRadius: 8,
   },
   errorText: {
-    color: '#B91C1C',
-    textAlign: 'center',
+    color: "#B91C1C",
+    textAlign: "center",
   },
   listContent: {
     padding: 15,
     paddingTop: 10,
   },
   resultItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    alignItems: 'center',
+    borderBottomColor: "#E5E7EB",
+    alignItems: "center",
   },
   resultItemPressed: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#F3F4F6",
   },
   thumbnail: {
     width: 60,
     height: 60,
     borderRadius: 6,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
   },
   resultContent: {
     flex: 1,
@@ -147,22 +171,22 @@ const styles = StyleSheet.create({
   },
   resultName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontWeight: "600",
+    color: "#1a1a1a",
   },
   resultMeta: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     marginTop: 4,
   },
   ratingText: {
-    color: '#2E7D32',
-    fontWeight: '600',
+    color: "#2E7D32",
+    fontWeight: "600",
   },
   emptyText: {
     fontSize: 16,
-    color: '#9CA3AF',
-    textAlign: 'center',
+    color: "#9CA3AF",
+    textAlign: "center",
     marginTop: 40,
   },
 });
