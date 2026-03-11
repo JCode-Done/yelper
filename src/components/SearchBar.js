@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-const SearchBar = ({ onSearchSubmit, placeholder = 'Search restaurants, bars, etc.' }) => {
+const SearchBar = ({ onSearchSubmit, placeholder = 'Search board games...' }) => {
   const [term, setTerm] = useState('');
 
   const handleSubmit = () => {
@@ -47,9 +47,11 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 8,
     marginHorizontal: 15,
+     marginVertical: 15,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
+    paddingVertical: 12
   },
   icon: {
     marginRight: 8,

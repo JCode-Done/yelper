@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
+import HorizontalThumbnails from '../components/HorizontalThumbnails';
+import { MOCK_GAMES } from '../api/boardgames';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
+  Pressable,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Image } from 'expo-image';
 import SearchBar from '../components/SearchBar';
-import { searchBusinesses } from '../api/yelp';
+import { searchBoardGames } from '../api/boardgames';
 
 const SearchScreen = () => {
+  const navigation = useNavigation();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,36 +23,45 @@ const SearchScreen = () => {
   const handleSearch = async (term) => {
     setLoading(true);
     setError(null);
-    const { businesses, error: apiError } = await searchBusinesses({ term });
+    const { games, error: apiError } = await searchBoardGames({ term });
     setLoading(false);
     if (apiError) {
       setError(apiError);
       setResults([]);
     } else {
-      setResults(businesses);
+      setResults(games);
     }
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.resultItem}>
-      <Text style={styles.resultName} numberOfLines={1}>
-        {item.name}
-      </Text>
-      <Text style={styles.resultDetails}>
-        {item.location?.city}, {item.location?.state} · {item.categories?.[0]?.title || 'Business'}
-      </Text>
-      {item.rating != null && (
-        <Text style={styles.resultRating}>★ {item.rating} ({item.review_count} reviews)</Text>
+    <Pressable
+      style={({ pressed }) => [styles.resultItem, pressed && styles.resultItemPressed]}
+      onPress={() => navigation.navigate('GameDetail', { game: item })}
+    >
+      {item.image ? (
+        <Image source={{ uri: item.image }} style={styles.thumbnail} contentFit="cover" />
+      ) : (
+        <View style={styles.thumbnail} />
       )}
-    </View>
+      <View style={styles.resultContent}>
+        <Text style={styles.resultName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.resultMeta}>
+          {item.rating != null && <Text style={styles.ratingText}>★ {item.rating.toFixed(1)}</Text>}
+          {item.rating != null && item.year != null && ' · '}
+          {item.year != null && item.year}
+        </Text>
+      </View>
+    </Pressable>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <SearchBar onSearchSubmit={handleSearch} />
       {loading && (
         <View style={styles.loading}>
-          <ActivityIndicator size="large" color="#D32323" />
+          <ActivityIndicator size="large" color="#2E7D32" />
         </View>
       )}
       {error && (
@@ -60,17 +74,30 @@ const SearchScreen = () => {
           data={results}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          ListHeaderComponent={
+            <HorizontalThumbnails
+              items={MOCK_GAMES.filter((g) => g.id && (g.image || g.imageLarge)).map((g) => ({
+                id: g.id,
+                image: g.image || g.imageLarge,
+                label: g.name,
+              }))}
+              onThumbnailPress={(item) => {
+                const game = MOCK_GAMES.find((m) => m.id === item.id);
+                if (game) navigation.navigate('GameDetail', { game });
+              }}
+            />
+          }
           ListEmptyComponent={
             !loading && results.length === 0 ? (
               <Text style={styles.emptyText}>
-                Search for restaurants, bars, and more to get started
+                Search for board games to get started
               </Text>
             ) : null
           }
           contentContainerStyle={styles.listContent}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -99,24 +126,38 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   resultItem: {
+    flexDirection: 'row',
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  resultItemPressed: {
+    backgroundColor: '#F3F4F6',
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
+  resultContent: {
+    flex: 1,
+    marginLeft: 14,
   },
   resultName: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1a1a1a',
   },
-  resultDetails: {
+  resultMeta: {
     fontSize: 14,
     color: '#6B7280',
     marginTop: 4,
   },
-  resultRating: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 2,
+  ratingText: {
+    color: '#2E7D32',
+    fontWeight: '600',
   },
   emptyText: {
     fontSize: 16,
