@@ -7,11 +7,13 @@ import {
   Keyboard,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import CategoryIcons from './CategoryIcons';
 
 const SearchBar = ({
   onSearchSubmit,
   onSearchChange,
   onFilterPress,
+  onCategoryPress,
   placeholder = 'Search board games...',
 }) => {
   const [term, setTerm] = useState('');
@@ -29,7 +31,8 @@ const SearchBar = ({
   };
 
   return (
-    <View style={styles.row}>
+    <View style={styles.container}>
+      <View style={styles.row}>
       <View style={styles.background}>
         <Feather name="search" size={20} color="#6B7280" style={styles.icon} />
         <TextInput
@@ -65,16 +68,20 @@ const SearchBar = ({
           <Feather name="filter" size={20} color="#6B7280" />
         </View>
       </Pressable>
+      </View>
+      <CategoryIcons onCategoryPress={onCategoryPress} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 15,
+    marginVertical: 15,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 15,
-    marginVertical: 15,
   },
   background: {
     flex: 1,

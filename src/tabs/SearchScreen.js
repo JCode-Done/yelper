@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MOCK_GAMES, searchBoardGames } from "../api/boardgames";
-import CategoryIcons from "../components/CategoryIcons";
 import HorizontalThumbnails from "../components/HorizontalThumbnails";
 import SearchBar from "../components/SearchBar";
 import { useFavorites } from "../context/FavoritesContext";
@@ -128,9 +127,6 @@ const SearchScreen = () => {
         onSearchSubmit={handleSearchSubmit}
         onSearchChange={handleSearchChange}
       />
-      <View style={styles.stickyCategories}>
-        <CategoryIcons />
-      </View>
       <FlatList
         data={results}
         keyExtractor={(item) => item.id ?? item.name ?? String(Math.random())}
@@ -189,12 +185,6 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     marginTop: 12,
     marginBottom: 8,
-  },
-  stickyCategories: {
-    backgroundColor: "#fff",
-    zIndex: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
   },
   hotnessSection: {
     paddingTop: 2,
