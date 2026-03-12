@@ -65,7 +65,8 @@ const HorizontalThumbnails = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 8,
+    paddingTop: 4,
+    paddingBottom: 8,
     paddingHorizontal: 4,
   },
   thumbnailWrapper: {
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
   },
   thumbnailPlaceholder: {
     borderRadius: 8,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#676767",
   },
   thumbnailPressed: {
     opacity: 0.8,
