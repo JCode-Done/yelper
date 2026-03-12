@@ -69,8 +69,9 @@ const FavoritesScreen = () => {
         </Text>
       ) : (
         <FlatList
+          style={styles.list}
           data={favorites}
-          keyExtractor={(item) => item.id ?? item.name ?? String(Math.random())}
+          keyExtractor={(item, index) => item.id ?? item.name ?? `fav-${index}`}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
         />
@@ -99,9 +100,13 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginHorizontal: 15,
   },
+  list: {
+    flex: 1,
+  },
   listContent: {
     padding: 15,
     paddingTop: 0,
+    flexGrow: 1,
   },
   resultRow: {
     flex: 1,

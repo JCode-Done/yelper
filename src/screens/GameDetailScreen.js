@@ -167,7 +167,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#E5E7EB",
   },
-  stat: {},
   statLabel: {
     fontSize: 12,
     color: "#9CA3AF",
@@ -195,11 +194,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: "#374151",
-  },
-  link: {
-    fontSize: 16,
-    color: "#2563EB",
-    fontWeight: "500",
   },
   closeButton: {
     padding: 8,

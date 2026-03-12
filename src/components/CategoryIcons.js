@@ -11,6 +11,7 @@ const CATEGORIES = [
   { id: 'ameritrash', label: 'Americitrash', icon: 'flash-outline' },
   { id: 'campaign', label: 'Campaign', icon: 'book-outline' },
   { id: 'trick', label: 'Trick taking', icon: 'layers-outline' },
+  { id: 'area', label: 'Area Control', icon: 'map-outline' },
 ];
 
 const CategoryIcons = ({ onCategoryPress }) => {
@@ -44,10 +45,11 @@ const CategoryIcons = ({ onCategoryPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 8,
+    paddingVertical: 4,
     paddingHorizontal: 15,
     paddingBottom: 4,
     marginTop: 8,
+    backgroundColor: '#fff',
   },
   item: {
     alignItems: 'center',

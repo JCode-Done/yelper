@@ -1,8 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
-import Badge from './Badge';
-
 const CARD_ASPECT = 3 / 2;
 const CARD_MAX_WIDTH = 300;
 const HORIZONTAL_PADDING = 30;
@@ -65,7 +63,6 @@ const FeaturedHorizontalScroll = ({
                   {item.year != null && item.year}
                 </Text>
               )}
-              <Badge label={item.badge} style={styles.badgeOffset} />
             </View>
           </Pressable>
         ))}
@@ -97,7 +94,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.8,
     shadowRadius: 8,
     elevation: 8,
   },
@@ -122,10 +119,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingBottom: 4,
-    marginTop: 4,
-  },
-  badgeOffset: {
-    marginBottom: 4,
+    marginTop: 4
   },
   itemMeta: {
     flex: 1,

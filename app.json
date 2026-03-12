@@ -35,6 +35,15 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      "expo-video",
+      "expo-audio",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
+        }
       ]
     ],
     "experiments": {

@@ -8,8 +8,8 @@ import { StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { FavoritesProvider } from './src/context/FavoritesContext';
+import { ProfileProvider } from './src/context/ProfileContext';
 import HomeScreen from './src/tabs/HomeScreen';
-import SearchScreen from './src/tabs/SearchScreen';
 import FavoritesScreen from './src/tabs/FavoritesScreen';
 import ProfileScreen from './src/tabs/ProfileScreen';
 import VideosScreen from './src/tabs/VideosScreen';
@@ -24,13 +24,12 @@ const TabNavigator = () => (
     screenOptions={({ route }) => ({
       headerStyle: { backgroundColor: '#E6F4FE' },
       headerTintColor: '#1a1a1a',
-      tabBarStyle: { backgroundColor: 'rgba(0,0,0,0.85)' },
+      tabBarStyle: { backgroundColor: 'rgba(0,0,0,0.85)'},
       tabBarActiveTintColor: '#fff',
       tabBarInactiveTintColor: 'rgba(255,255,255,0.7)',
       tabBarIcon: ({ focused, color, size }) => {
         const iconMap = {
           Home: focused ? 'home' : 'home-outline',
-          BoardGameSearch: focused ? 'search' : 'search-outline',
           Favorites: focused ? 'heart' : 'heart-outline',
           Profile: focused ? 'person' : 'person-outline',
           Videos: focused ? 'videocam' : 'videocam-outline',
@@ -40,11 +39,6 @@ const TabNavigator = () => (
     })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen
-      name="BoardGameSearch"
-      component={SearchScreen}
-      options={{ title: 'Board Game Search' }}
-    />
     <Tab.Screen name="Favorites" component={FavoritesScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
     <Tab.Screen name="Videos" component={VideosScreen} />
@@ -55,6 +49,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <FavoritesProvider>
+        <ProfileProvider>
         <NavigationContainer>
           <StatusBar style="auto" />
           <Stack.Navigator
@@ -86,6 +81,7 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
+        </ProfileProvider>
       </FavoritesProvider>
     </GestureHandlerRootView>
   );

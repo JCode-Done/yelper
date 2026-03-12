@@ -7,7 +7,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
  * @param {Object} props
  * @param {Array} props.items - Array of { id, image (uri), label? }
  * @param {Function} [props.onThumbnailPress] - Called with (item) when thumbnail is pressed
- * @param {number} [props.thumbnailSize] - Size of each thumbnail (default 160)
+ * @param {number} [props.thumbnailSize] - Size of each thumbnail (default 140)
  * @param {number} [props.thumbnailGap] - Gap between thumbnails (default 12)
  * @param {string} [props.fadeColor] - Color for right-edge fade (default "#fff")
  */
@@ -55,7 +55,10 @@ const HorizontalThumbnails = ({
             />
           )}
           {item.label != null && (
-            <Text style={styles.label} numberOfLines={2}>
+            <Text
+              style={[styles.label, { maxWidth: thumbnailSize }]}
+              numberOfLines={2}
+            >
               {item.label}
             </Text>
           )}
@@ -73,17 +76,19 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: 4,
     paddingBottom: 8,
-    paddingHorizontal: 4,
+    paddingHorizontal: 15,
   },
   thumbnailWrapper: {
     alignItems: "center",
   },
   thumbnail: {
     borderRadius: 8,
+    overflow: "hidden",
   },
   thumbnailPlaceholder: {
     borderRadius: 8,
-    backgroundColor: "#676767",
+    overflow: "hidden",
+    backgroundColor: "#E5E7EB",
   },
   thumbnailPressed: {
     opacity: 0.8,
@@ -93,7 +98,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#6B7280",
     textAlign: "center",
-    maxWidth: 160,
   },
 });
 

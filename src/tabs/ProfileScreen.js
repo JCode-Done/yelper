@@ -1,37 +1,85 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Image } from 'expo-image';
-
-const DEFAULT_AVATAR =
-  'https://api.dicebear.com/7.x/avataaars/svg?seed=boardgamer&backgroundColor=2E7D32';
+import { Ionicons } from '@expo/vector-icons';
+import ProfileEditModal from '../components/ProfileEditModal';
+import GamerProfileChart from '../components/GamerProfileChart';
+import { useProfile } from '../context/ProfileContext';
 
 const ProfileScreen = () => {
-  const name = 'Alex Rivera';
+  const { avatar, name, setAvatar, setName } = useProfile();
+  const [title, setTitle] = useState('Board Game Enthusiast');
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
   const yearsGaming = 8;
-  const title = 'Board Game Enthusiast';
+  const gamerProfileData = {
+    strategy: 82,
+    abstract: 45,
+    workerPlacement: 88,
+    trickTaking: 58,
+    resourceManagement: 92,
+    cardGames: 68,
+    areaControl: 75,
+    euro: 90,
+    campaign: 52,
+    ameritrash: 48,
+  };
   const bio =
-    'I\'ve been collecting and playing board games since college. Favorites include Wingspan, Terraforming Mars, and Catan. Always looking to discover new titles and connect with fellow gamers. Hit me up for game night!';
+    "I've been collecting and playing board games since college. Favorites include Wingspan, Terraforming Mars, and Catan. Always looking to discover new titles and connect with fellow gamers. Hit me up for game night!";
+
+  const openEditModal = () => setEditModalVisible(true);
+  const cancelEditModal = () => setEditModalVisible(false);
+
+  const handleSave = ({ name: newName, title: newTitle }) => {
+    setName(newName);
+    setTitle(newTitle);
+  };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <Image
-        source={{ uri: DEFAULT_AVATAR }}
-        style={styles.avatar}
-        contentFit="cover"
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.avatarWrapper}>
+          <Image
+            source={{ uri: avatar }}
+            style={styles.avatar}
+            contentFit="cover"
+          />
+          <Pressable
+            style={styles.editPhotoButton}
+            onPress={openEditModal}
+            hitSlop={12}
+          >
+            <Ionicons name="pencil" size={18} color="#fff" />
+          </Pressable>
+        </View>
+        <Text style={styles.name}>{name}</Text>
+        <Text style={styles.title}>
+          {title} · {yearsGaming} years gaming
+        </Text>
+        <View style={styles.bioSection}>
+          <Text style={styles.bioLabel}>About</Text>
+          <Text style={styles.bio}>{bio}</Text>
+        </View>
+
+        <View style={styles.chartSection}>
+          <GamerProfileChart data={gamerProfileData} title="Your Gaming Profile" />
+        </View>
+      </ScrollView>
+
+      <ProfileEditModal
+        visible={editModalVisible}
+        onCancel={cancelEditModal}
+        onSave={handleSave}
+        initialName={name}
+        initialTitle={title}
+        avatarUri={avatar}
+        onAvatarChange={setAvatar}
       />
-      <Text style={styles.name}>{name}</Text>
-      <Text style={styles.title}>
-        {title} · {yearsGaming} years gaming
-      </Text>
-      <View style={styles.bioSection}>
-        <Text style={styles.bioLabel}>About</Text>
-        <Text style={styles.bio}>{bio}</Text>
-      </View>
-    </ScrollView>
+    </>
   );
 };
 
@@ -46,11 +94,27 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingBottom: 40,
   },
+  avatarWrapper: {
+    position: 'relative',
+  },
   avatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
     backgroundColor: '#E5E7EB',
+  },
+  editPhotoButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   name: {
     fontSize: 24,
@@ -84,6 +148,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#374151',
     lineHeight: 24,
+  },
+  chartSection: {
+    marginTop: 32,
+    alignSelf: 'stretch',
+    paddingHorizontal: 4,
   },
 });
 

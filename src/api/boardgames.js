@@ -46,8 +46,8 @@ const MOCK_GAMES = [
     id: "222",
     name: "Carcassonne",
     year: 2000,
-     image: "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",   
- imageLarge: "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp", image: null,
+    image: "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",
+    imageLarge: "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",
     rating: 7.4,
     description:
       "Tile-placement game where players draw and place tiles to build the medieval landscape around Carcassonne.",

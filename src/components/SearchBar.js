@@ -5,9 +5,9 @@ import {
   StyleSheet,
   Pressable,
   Keyboard,
-  useWindowDimensions,
+  Platform,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import CategoryIcons from './CategoryIcons';
 
 const SearchBar = ({
@@ -16,49 +16,53 @@ const SearchBar = ({
   onFilterPress,
   onCategoryPress,
   placeholder = 'Search board games...',
+  value,
 }) => {
-  const { width } = useWindowDimensions();
-  const horizontalMargin = Math.max(12, Math.min(width * 0.04, 24));
   const [term, setTerm] = useState('');
+  const isControlled = value !== undefined;
+  const inputValue = isControlled ? value : term;
 
   const handleChangeText = (text) => {
-    setTerm(text);
+    if (!isControlled) setTerm(text);
     onSearchChange?.(text);
   };
 
   const handleSubmit = () => {
     Keyboard.dismiss();
-    if (term.trim()) {
-      onSearchSubmit?.(term.trim());
+    const t = inputValue?.trim() ?? '';
+    if (t) {
+      onSearchSubmit?.(t);
     }
   };
 
   return (
-    <View style={[styles.container, { marginHorizontal: horizontalMargin }]}>
+    <View style={styles.container}>
       <View style={styles.row}>
       <View style={styles.background}>
-        <Feather name="search" size={20} color="#6B7280" style={styles.icon} />
+        <View style={styles.iconWrapper}>
+          <Ionicons name="search" size={20} color="#6B7280" />
+        </View>
         <TextInput
           style={styles.input}
           placeholder={placeholder}
           placeholderTextColor="#6B7280"
-          value={term}
+          value={inputValue}
           onChangeText={handleChangeText}
           onSubmitEditing={handleSubmit}
           returnKeyType="search"
           autoCapitalize="none"
           autoCorrect={false}
         />
-        {term.length > 0 && (
+        {(inputValue?.length ?? 0) > 0 && (
           <Pressable
             onPress={() => {
-              setTerm('');
+              if (!isControlled) setTerm('');
               onSearchChange?.('');
             }}
             hitSlop={8}
-            style={styles.clear}
+            style={[styles.clear, styles.iconWrapper]}
           >
-            <Feather name="x-circle" size={18} color="#6B7280" />
+            <Ionicons name="close-circle" size={18} color="#6B7280" />
           </Pressable>
         )}
       </View>
@@ -68,7 +72,7 @@ const SearchBar = ({
         style={styles.filter}
       >
         <View style={styles.filterCircle}>
-          <Feather name="filter" size={20} color="#6B7280" />
+          <Ionicons name="filter" size={20} color="#6B7280" />
         </View>
       </Pressable>
       </View>
@@ -79,8 +83,22 @@ const SearchBar = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 15,
-    marginVertical: 15,
+    width: '100%',
+    alignSelf: 'stretch',
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    backgroundColor: '#fff',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   row: {
     flexDirection: 'row',
@@ -96,8 +114,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
-  icon: {
+  iconWrapper: {
     marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   input: {
     flex: 1,
