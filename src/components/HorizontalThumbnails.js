@@ -9,6 +9,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
  * @param {Function} [props.onThumbnailPress] - Called with (item) when thumbnail is pressed
  * @param {number} [props.thumbnailSize] - Size of each thumbnail (default 160)
  * @param {number} [props.thumbnailGap] - Gap between thumbnails (default 12)
+ * @param {string} [props.fadeColor] - Color for right-edge fade (default "#fff")
  */
 const HorizontalThumbnails = ({
   items = [],
@@ -19,6 +20,7 @@ const HorizontalThumbnails = ({
   if (!items.length) return null;
 
   return (
+    <View style={styles.wrapper}>
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
@@ -60,10 +62,14 @@ const HorizontalThumbnails = ({
         </Pressable>
       ))}
     </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    position: "relative",
+  },
   container: {
     paddingTop: 4,
     paddingBottom: 8,

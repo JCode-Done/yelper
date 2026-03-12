@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MOCK_GAMES, searchBoardGames } from "../api/boardgames";
@@ -19,7 +20,9 @@ const DEBOUNCE_MS = 350;
 
 const SearchScreen = () => {
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const thumbnailSize = Math.min(140, Math.round(width * 0.28));
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -122,7 +125,6 @@ const SearchScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.searchTitle}>Search board games</Text>
       <SearchBar
         onSearchSubmit={handleSearchSubmit}
         onSearchChange={handleSearchChange}
@@ -131,6 +133,7 @@ const SearchScreen = () => {
         data={results}
         keyExtractor={(item) => item.id ?? item.name ?? String(Math.random())}
         renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           loading ? (
             <View style={styles.loading}>
@@ -142,30 +145,24 @@ const SearchScreen = () => {
             </View>
           ) : null
         }
-        ListEmptyComponent={
-          !loading && !error && results.length === 0 ? (
-            <Text style={styles.emptyText}>
-              Search for board games to get started
-            </Text>
-          ) : null
-        }
         ListFooterComponent={
           <View style={styles.hotnessSection}>
             <Text style={styles.hotnessTitle}>Hotness</Text>
             <HorizontalThumbnails
-          items={MOCK_GAMES.filter(
-            (g) => g.id && (g.image || g.imageLarge),
-          ).map((g) => ({
-            id: g.id,
-            image: g.image || g.imageLarge,
-            label: g.name,
-          }))}
-          onThumbnailPress={(item) => {
-            const game = MOCK_GAMES.find((m) => m.id === item.id);
-            if (game) navigation.navigate("GameDetail", { game });
-          }}
-        />
-      </View>
+              thumbnailSize={thumbnailSize}
+              items={MOCK_GAMES.filter(
+                (g) => g.id && (g.image || g.imageLarge),
+              ).map((g) => ({
+                id: g.id,
+                image: g.image || g.imageLarge,
+                label: g.name,
+              }))}
+              onThumbnailPress={(item) => {
+                const game = MOCK_GAMES.find((m) => m.id === item.id);
+                if (game) navigation.navigate("GameDetail", { game });
+              }}
+            />
+          </View>
         }
       />
     </View>
@@ -215,6 +212,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 15,
     paddingTop: 10,
+    paddingHorizontal: 10,
   },
   resultItem: {
     flexDirection: "row",

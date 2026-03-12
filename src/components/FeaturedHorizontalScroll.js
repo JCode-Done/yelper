@@ -1,7 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import Badge from './Badge';
+
+const CARD_ASPECT = 3 / 2;
+const CARD_MAX_WIDTH = 300;
+const HORIZONTAL_PADDING = 30;
 
 /**
  * Featured horizontal scroll component for home page
@@ -15,6 +19,11 @@ const FeaturedHorizontalScroll = ({
   onItemPress,
   title = 'Featured',
 }) => {
+  const { width: screenWidth } = useWindowDimensions();
+  const cardWidth = Math.min(CARD_MAX_WIDTH, screenWidth - HORIZONTAL_PADDING);
+  const cardHeight = cardWidth / CARD_ASPECT;
+  const imageHeight = Math.round(cardHeight * 0.7);
+
   if (!items.length) return null;
 
   const filteredItems = items.filter((g) => g.id && (g.image || g.imageLarge));
@@ -33,15 +42,15 @@ const FeaturedHorizontalScroll = ({
             onPress={() => onItemPress?.(item)}
             style={({ pressed }) => [
               styles.card,
-              { marginRight: index < filteredItems.length - 1 ? 16 : 0 },
+              { width: cardWidth, height: cardHeight, marginRight: index < filteredItems.length - 1 ? 16 : 0 },
               pressed && styles.cardPressed,
             ]}
             disabled={!onItemPress}
           >
-            <View style={styles.imageWrapper}>
+            <View style={[styles.imageWrapper, { width: cardWidth, height: imageHeight }]}>
               <Image
                 source={{ uri: item.image || item.imageLarge }}
-                style={styles.image}
+                style={[styles.image, { width: cardWidth, height: imageHeight }]}
                 contentFit="cover"
               />
             </View>
@@ -80,8 +89,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   card: {
-    width: 300,
-    height: 200,
     backgroundColor: '#fff',
     borderRadius: 12,
     overflow: 'hidden',
@@ -98,13 +105,9 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   imageWrapper: {
-    width: 300,
-    height: 140,
     backgroundColor: '#E5E7EB',
   },
   image: {
-    width: 300,
-    height: 140,
   },
   itemName: {
     fontSize: 15,

@@ -31,7 +31,7 @@ const CategoryIcons = ({ onCategoryPress }) => {
           ]}
         >
           <View style={styles.iconWrapper}>
-            <Ionicons name={cat.icon} size={18} color="#4B5563" />
+            <Ionicons name={cat.icon} size={24} color="#4B5563" />
           </View>
           <Text style={styles.label} numberOfLines={2}>
             {cat.label}
@@ -51,19 +51,19 @@ const styles = StyleSheet.create({
   },
   item: {
     alignItems: 'center',
-    width: 60,
+    width: 58,
   },
   itemGap: {
     marginRight: 12,
   },
   iconWrapper: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
   itemPressed: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   label: {
     marginTop: 3,

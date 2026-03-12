@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Pressable,
   Keyboard,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import CategoryIcons from './CategoryIcons';
@@ -16,6 +17,8 @@ const SearchBar = ({
   onCategoryPress,
   placeholder = 'Search board games...',
 }) => {
+  const { width } = useWindowDimensions();
+  const horizontalMargin = Math.max(12, Math.min(width * 0.04, 24));
   const [term, setTerm] = useState('');
 
   const handleChangeText = (text) => {
@@ -31,7 +34,7 @@ const SearchBar = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { marginHorizontal: horizontalMargin }]}>
       <View style={styles.row}>
       <View style={styles.background}>
         <Feather name="search" size={20} color="#6B7280" style={styles.icon} />
