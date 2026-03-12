@@ -12,6 +12,7 @@ const MOCK_GAMES = [
     id: "13",
     name: "Catan",
     year: 1995,
+    badge: "Resource Management",
     image:
       "https://upload.wikimedia.org/wikipedia/commons/7/70/A_game_of_Settlers_of_Catan.jpg",
     imageLarge:

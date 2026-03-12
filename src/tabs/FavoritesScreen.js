@@ -1,0 +1,160 @@
+import React from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { Image } from 'expo-image';
+import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useFavorites } from '../context/FavoritesContext';
+
+const FavoritesScreen = () => {
+  const navigation = useNavigation();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+
+  const renderItem = ({ item }) => {
+    const key = item.id ?? item.name;
+    const favorited = isFavorite(key);
+    return (
+      <View style={styles.resultItem}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.resultRow,
+            pressed && styles.resultItemPressed,
+          ]}
+          onPress={() => navigation.navigate('GameDetail', { game: item })}
+        >
+          <View style={styles.thumbnailWrapper}>
+            {item.image ? (
+              <Image
+                source={{ uri: item.image }}
+                style={styles.thumbnail}
+                contentFit="cover"
+              />
+            ) : (
+              <View style={styles.thumbnail} />
+            )}
+            <Pressable
+              style={styles.heartButton}
+              onPress={() => toggleFavorite(item)}
+              hitSlop={8}
+            >
+              <Ionicons
+                name={favorited ? 'heart' : 'heart-outline'}
+                size={20}
+                color={favorited ? '#DC2626' : '#9CA3AF'}
+              />
+            </Pressable>
+          </View>
+          <View style={styles.resultContent}>
+          <Text style={styles.resultName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text style={styles.resultMeta}>
+            {item.rating != null && (
+              <Text style={styles.ratingText}>★ {item.rating.toFixed(1)}</Text>
+            )}
+            {item.rating != null && item.year != null && ' · '}
+            {item.year != null && item.year}
+          </Text>
+        </View>
+      </Pressable>
+    </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Favorites</Text>
+      {favorites.length === 0 ? (
+        <Text style={styles.emptyText}>
+          Tap the heart on any game to add it here
+        </Text>
+      ) : (
+        <FlatList
+          data={favorites}
+          keyExtractor={(item) => item.id ?? item.name ?? String(Math.random())}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginHorizontal: 15,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 40,
+    marginHorizontal: 15,
+  },
+  listContent: {
+    padding: 15,
+    paddingTop: 0,
+  },
+  resultRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  resultItem: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  resultItemPressed: {
+    backgroundColor: '#F3F4F6',
+  },
+  thumbnailWrapper: {
+    width: 60,
+    height: 50,
+    position: 'relative',
+  },
+  thumbnail: {
+    width: 60,
+    height: 50,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
+  heartButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  resultContent: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  resultName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  resultMeta: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  ratingText: {
+    color: '#2E7D32',
+    fontWeight: '600',
+  },
+});
+
+export default FavoritesScreen;
