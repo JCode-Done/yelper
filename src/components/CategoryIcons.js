@@ -31,7 +31,7 @@ const CategoryIcons = ({ onCategoryPress }) => {
           ]}
         >
           <View style={styles.iconWrapper}>
-            <Ionicons name={cat.icon} size={28} color="#fff" />
+            <Ionicons name={cat.icon} size={18} color="#4B5563" />
           </View>
           <Text style={styles.label} numberOfLines={2}>
             {cat.label}
@@ -47,19 +47,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 15,
     paddingBottom: 4,
+    marginTop: 8,
   },
   item: {
     alignItems: 'center',
-    width: 72,
+    width: 60,
   },
   itemGap: {
-    marginRight: 16,
+    marginRight: 12,
   },
   iconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#5f5f5f',
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -67,8 +66,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   label: {
-    marginTop: 6,
-    fontSize: 11,
+    marginTop: 3,
+    fontSize: 9,
     color: '#6B7280',
     textAlign: 'center',
   },
