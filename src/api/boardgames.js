@@ -11,6 +11,7 @@ const MOCK_GAMES = [
   {
     id: "13",
     name: "Catan",
+    tags: ["strategy"],
     year: 1995,
     badge: "Resource Management",
     image:
@@ -30,6 +31,7 @@ const MOCK_GAMES = [
   {
     id: "9217",
     name: "Ticket to Ride",
+    tags: ["euro"],
     year: 2004,
     image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
  imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg", rating: 7.4,
@@ -45,6 +47,7 @@ const MOCK_GAMES = [
   {
     id: "222",
     name: "Carcassonne",
+    tags: ["euro"],
     year: 2000,
     image: "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",
     imageLarge: "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",
@@ -61,6 +64,7 @@ const MOCK_GAMES = [
   {
     id: "266192",
     name: "Wingspan",
+    tags: ["euro", "strategy"],
     year: 2019,
     image:
       "https://upload.wikimedia.org/wikipedia/commons/7/70/Components_in_Wingspan_board_game.jpg",
@@ -79,6 +83,7 @@ const MOCK_GAMES = [
   {
     id: "174430",
     name: "Gloomhaven",
+    tags: ["resource management"],
     year: 2017,
  image: "https://theboardgameschronicle.com/wp-content/uploads/2021/07/40_00.jpg",   
  imageLarge: "https://theboardgameschronicle.com/wp-content/uploads/2021/07/40_00.jpg",    rating: 8.8,
@@ -92,7 +97,9 @@ const MOCK_GAMES = [
     usersRated: 45200,
   },
   {
+    id: "azul",
     name: "Azul",
+    tags: ["abstract"],
     year: 2017,
  image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
  imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",    rating: 7.7,
@@ -108,6 +115,7 @@ const MOCK_GAMES = [
   {
     id: "148228",
     name: "Splendor",
+    tags: ["strategy"],
     year: 2014,
  image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
  imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",    rating: 7.4,
@@ -123,6 +131,7 @@ const MOCK_GAMES = [
   {
     id: "30549",
     name: "Pandemic",
+    tags: ["Cooperative"],
     year: 2008,
  image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
  imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",    rating: 7.6,
@@ -249,8 +258,19 @@ const fetchGameDetails = async (gameIds) => {
  * @returns {Promise<Object>} { games: [], error: string|null }
  */
 export { MOCK_GAMES };
-export const searchBoardGames = async ({ term, limit = 20 }) => {
-  const query = term.trim();
+export const searchBoardGames = async ({ term = "", tag, limit = 20 }) => {
+  const query = (term || "").trim();
+
+  if (tag) {
+    await delay(200);
+    const games = MOCK_GAMES.filter(
+      (g) => g.tags && Array.isArray(g.tags) && g.tags.includes(tag)
+    )
+      .slice(0, limit)
+      .map((g) => ({ ...g }));
+    return { games, error: null };
+  }
+
   if (!query) {
     await delay(200);
     let games = MOCK_GAMES.slice(0, limit).map((g) => ({ ...g }));

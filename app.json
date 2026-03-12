@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "yelper",
-    "slug": "yelper",
+    "name": "gametap",
+    "slug": "gametap",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "yelper",
+    "scheme": "gametap",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true

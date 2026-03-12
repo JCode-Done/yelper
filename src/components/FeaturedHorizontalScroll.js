@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a1a',
     marginHorizontal: 15,
+    marginTop: 14,
     marginBottom: 12,
   },
   container: {

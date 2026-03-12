@@ -8,6 +8,8 @@ import {
   TextInput,
   ScrollView,
   useWindowDimensions,
+  Alert,
+  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,28 +45,50 @@ const ProfileEditModal = ({
   };
 
   const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') return;
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-    });
-    if (!result.canceled && result.assets[0]) {
-      onAvatarChange?.(result.assets[0].uri);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Camera access required',
+          'Please enable camera permissions in Settings to take a photo.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+      });
+      if (!result.canceled && result.assets[0]) {
+        onAvatarChange?.(result.assets[0].uri);
+      }
+    } catch (_err) {
+      Alert.alert('Error', 'Could not open camera. Please try again.');
     }
   };
 
   const uploadPhoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-    });
-    if (!result.canceled && result.assets[0]) {
-      onAvatarChange?.(result.assets[0].uri);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Photo access required',
+          'Please enable photo library permissions in Settings to choose a photo.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+      });
+      if (!result.canceled && result.assets[0]) {
+        onAvatarChange?.(result.assets[0].uri);
+      }
+    } catch (_err) {
+      Alert.alert('Error', 'Could not open photo library. Please try again.');
     }
   };
 
@@ -97,18 +121,18 @@ const ProfileEditModal = ({
           >
             <View style={styles.photoButtons}>
               <Pressable
-                style={({ pressed }) => [styles.photoButton, pressed && styles.photoButtonPressed]}
+                style={({ pressed }) => [styles.photoButton, styles.takePhotoButton, pressed && styles.photoButtonPressed]}
                 onPress={takePhoto}
               >
-                <Ionicons name="camera" size={24} color="#2E7D32" />
-                <Text style={styles.photoButtonText}>Take Photo</Text>
+                <Ionicons name="camera" size={24} color="#4B5563" />
+                <Text style={[styles.photoButtonText, styles.takePhotoButtonText]}>Take Photo</Text>
               </Pressable>
               <Pressable
-                style={({ pressed }) => [styles.photoButton, pressed && styles.photoButtonPressed]}
+                style={({ pressed }) => [styles.photoButton, styles.uploadPhotoButton, pressed && styles.photoButtonPressed]}
                 onPress={uploadPhoto}
               >
-                <Ionicons name="image" size={24} color="#2E7D32" />
-                <Text style={styles.photoButtonText}>Upload Photo</Text>
+                <Ionicons name="image" size={24} color="#4B5563" />
+                <Text style={[styles.photoButtonText, styles.uploadPhotoButtonText]}>Upload Photo</Text>
               </Pressable>
             </View>
 
@@ -197,6 +221,44 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BBF7D0',
   },
+  takePhotoButton: {
+    backgroundColor: '#fff',
+    borderColor: '#4B5563',
+    borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  takePhotoButtonText: {
+    color: '#4B5563',
+  },
+  uploadPhotoButton: {
+    backgroundColor: '#fff',
+    borderColor: '#4B5563',
+    borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  uploadPhotoButtonText: {
+    color: '#4B5563',
+  },
   photoButtonPressed: {
     opacity: 0.8,
   },
@@ -212,7 +274,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#f3f3f3',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -221,7 +283,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   updateButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#000',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',

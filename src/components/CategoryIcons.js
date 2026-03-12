@@ -12,6 +12,8 @@ const CATEGORIES = [
   { id: 'campaign', label: 'Campaign', icon: 'book-outline' },
   { id: 'trick', label: 'Trick taking', icon: 'layers-outline' },
   { id: 'area', label: 'Area Control', icon: 'map-outline' },
+  { id: 'resourceManagement', label: 'Resource Management', icon: 'cash-outline' },
+  { id: 'cooperative', label: 'Cooperative', icon: 'people-outline' },
 ];
 
 const CategoryIcons = ({ onCategoryPress }) => {

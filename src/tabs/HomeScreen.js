@@ -32,10 +32,12 @@ const HomeScreen = () => {
   const debounceRef = useRef(null);
   const { avatar, name: profileName } = useProfile();
 
-  const runSearch = useCallback(async (term, additive = false) => {
+  const runSearch = useCallback(async (term, additive = false, tag = null) => {
     setLoading(true);
     setError(null);
-    const { games, error: apiError } = await searchBoardGames({ term });
+    const { games, error: apiError } = await searchBoardGames(
+      tag ? { tag } : { term }
+    );
     setLoading(false);
     if (apiError) {
       setError(apiError);
@@ -163,7 +165,14 @@ const HomeScreen = () => {
         value={searchInput}
         onSearchChange={handleSearchChange}
         onSearchSubmit={handleSearchSubmit}
-        onCategoryPress={(cat) => handleSearchChange(cat.label)}
+        onCategoryPress={(cat) => {
+          if (cat.id === 'euro' || cat.id === 'strategy') {
+            setSearchInput(cat.label);
+            runSearch('', false, cat.id);
+          } else {
+            handleSearchChange(cat.label);
+          }
+        }}
       />
       <FlatList
         style={styles.list}
