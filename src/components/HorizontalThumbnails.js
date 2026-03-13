@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useTheme } from "../context/ThemeContext";
 
 /**
  * Horizontal scrollable thumbnail component
@@ -17,6 +18,7 @@ const HorizontalThumbnails = ({
   thumbnailSize = 140,
   thumbnailGap = 12,
 }) => {
+  const { colors } = useTheme();
   if (!items.length) return null;
 
   return (
@@ -56,7 +58,10 @@ const HorizontalThumbnails = ({
           )}
           {item.label != null && (
             <Text
-              style={[styles.label, { maxWidth: thumbnailSize }]}
+              style={[
+                styles.label,
+                { maxWidth: thumbnailSize, color: colors.textSecondary },
+              ]}
               numberOfLines={2}
             >
               {item.label}

@@ -2,9 +2,11 @@ import React from 'react';
 import { Text, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import VideoFlatList, { MOCK_VIDEOS, MOCK_PODCASTS } from '../components/VideoFlatList';
+import { useTheme } from '../context/ThemeContext';
 
 const VideosScreen = () => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   const handleVideoPress = (item) =>
     navigation.navigate('VideoPlayer', {
@@ -23,10 +25,27 @@ const VideosScreen = () => {
     });
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.sectionTitle}>Videos</Text>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.textPrimary },
+        ]}
+      >
+        Videos
+      </Text>
       <VideoFlatList videos={MOCK_VIDEOS} onVideoPress={handleVideoPress} scrollEnabled={false} />
-      <Text style={styles.sectionTitle}>Board Gaming Podcasts</Text>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.textPrimary },
+        ]}
+      >
+        Board Gaming Podcasts
+      </Text>
       <VideoFlatList videos={MOCK_PODCASTS} onVideoPress={handlePodcastPress} scrollEnabled={false} />
     </ScrollView>
   );
@@ -35,12 +54,10 @@ const VideosScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
     marginHorizontal: 15,
     marginTop: 20,
     marginBottom: 8,

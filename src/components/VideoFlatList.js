@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 const MOCK_VIDEOS = [
   { id: '1', videoId: '31nyuvC-6p0', title: 'Top 10 Games of 2024', channel: 'Dice Tower' },
@@ -46,6 +47,7 @@ const defaultOpenVideo = (videoId) => {
 };
 
 const VideoFlatList = ({ videos = MOCK_VIDEOS, onVideoPress, scrollEnabled = true }) => {
+  const { colors } = useTheme();
   const handlePress = (item) => {
     if (onVideoPress) {
       onVideoPress(item);
@@ -56,7 +58,13 @@ const VideoFlatList = ({ videos = MOCK_VIDEOS, onVideoPress, scrollEnabled = tru
 
   const renderItem = ({ item }) => (
     <Pressable
-      style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+      style={({ pressed }) => [
+        styles.item,
+        {
+          backgroundColor: colors.card,
+        },
+        pressed && styles.itemPressed,
+      ]}
       onPress={() => handlePress(item)}
     >
       <View style={styles.thumbnailWrapper}>
@@ -70,10 +78,23 @@ const VideoFlatList = ({ videos = MOCK_VIDEOS, onVideoPress, scrollEnabled = tru
         </View>
       </View>
       <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={2}>
+        <Text
+          style={[
+            styles.title,
+            { color: colors.textPrimary },
+          ]}
+          numberOfLines={2}
+        >
           {item.title}
         </Text>
-        <Text style={styles.channel}>{item.channel}</Text>
+        <Text
+          style={[
+            styles.channel,
+            { color: colors.textSecondary },
+          ]}
+        >
+          {item.channel}
+        </Text>
       </View>
     </Pressable>
   );

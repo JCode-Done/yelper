@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
+import { useTheme } from '../context/ThemeContext';
 const CARD_ASPECT = 3 / 2;
 const CARD_MAX_WIDTH = 300;
 const HORIZONTAL_PADDING = 30;
@@ -17,6 +18,7 @@ const FeaturedHorizontalScroll = ({
   onItemPress,
   title = 'Featured',
 }) => {
+  const { colors, isDark } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = Math.min(CARD_MAX_WIDTH, screenWidth - HORIZONTAL_PADDING);
   const cardHeight = cardWidth / CARD_ASPECT;
@@ -28,7 +30,14 @@ const FeaturedHorizontalScroll = ({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.title}>{title}</Text>
+      <Text
+        style={[
+          styles.title,
+          { color: colors.textPrimary },
+        ]}
+      >
+        {title}
+      </Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -40,6 +49,10 @@ const FeaturedHorizontalScroll = ({
             onPress={() => onItemPress?.(item)}
             style={({ pressed }) => [
               styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
               { width: cardWidth, height: cardHeight, marginRight: index < filteredItems.length - 1 ? 16 : 0 },
               pressed && styles.cardPressed,
             ]}
@@ -52,12 +65,23 @@ const FeaturedHorizontalScroll = ({
                 contentFit="cover"
               />
             </View>
-            <Text style={styles.itemName} numberOfLines={2}>
+            <Text
+              style={[
+                styles.itemName,
+                { color: colors.textPrimary },
+              ]}
+              numberOfLines={2}
+            >
               {item.name}
             </Text>
             <View style={styles.metaRow}>
               {(item.year != null || item.rating != null) && (
-                <Text style={styles.itemMeta}>
+                <Text
+                  style={[
+                    styles.itemMeta,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   {item.rating != null && `★ ${item.rating.toFixed(1)}`}
                   {item.rating != null && item.year != null && ' · '}
                   {item.year != null && item.year}

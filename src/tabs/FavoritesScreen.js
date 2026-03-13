@@ -4,16 +4,23 @@ import { Image } from 'expo-image';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFavorites } from '../context/FavoritesContext';
+import { useTheme } from '../context/ThemeContext';
 
 const FavoritesScreen = () => {
   const navigation = useNavigation();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const { colors } = useTheme();
 
   const renderItem = ({ item }) => {
     const key = item.id ?? item.name;
     const favorited = isFavorite(key);
     return (
-      <View style={styles.resultItem}>
+      <View
+        style={[
+          styles.resultItem,
+          { borderBottomColor: colors.border },
+        ]}
+      >
         <Pressable
           style={({ pressed }) => [
             styles.resultRow,
@@ -44,27 +51,55 @@ const FavoritesScreen = () => {
             </Pressable>
           </View>
           <View style={styles.resultContent}>
-          <Text style={styles.resultName} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <Text style={styles.resultMeta}>
-            {item.rating != null && (
-              <Text style={styles.ratingText}>★ {item.rating.toFixed(1)}</Text>
-            )}
-            {item.rating != null && item.year != null && ' · '}
-            {item.year != null && item.year}
-          </Text>
-        </View>
+            <Text
+              style={[
+                styles.resultName,
+                { color: colors.textPrimary },
+              ]}
+              numberOfLines={1}
+            >
+              {item.name}
+            </Text>
+            <Text
+              style={[
+                styles.resultMeta,
+                { color: colors.textSecondary },
+              ]}
+            >
+              {item.rating != null && (
+                <Text style={styles.ratingText}>★ {item.rating.toFixed(1)}</Text>
+              )}
+              {item.rating != null && item.year != null && ' · '}
+              {item.year != null && item.year}
+            </Text>
+          </View>
       </Pressable>
     </View>
     );
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Favorites</Text>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+      ]}
+    >
+      <Text
+        style={[
+          styles.title,
+          { color: colors.textPrimary },
+        ]}
+      >
+        Favorites
+      </Text>
       {favorites.length === 0 ? (
-        <Text style={styles.emptyText}>
+        <Text
+          style={[
+            styles.emptyText,
+            { color: colors.textSecondary },
+          ]}
+        >
           Tap the heart on any game to add it here
         </Text>
       ) : (
@@ -83,7 +118,6 @@ const FavoritesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,

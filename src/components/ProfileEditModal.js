@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 /**
  * Reusable profile edit modal (form sheet).
@@ -31,6 +32,7 @@ const ProfileEditModal = ({
   const { height } = useWindowDimensions();
   const [name, setName] = useState(initialName);
   const [title, setTitle] = useState(initialTitle);
+  const { colors } = useTheme();
 
   useEffect(() => {
     if (visible) {
@@ -103,13 +105,23 @@ const ProfileEditModal = ({
     >
       <Pressable style={styles.modalOverlay} onPress={onCancel}>
         <Pressable
-          style={[styles.modalSheet, { height: sheetHeight }]}
+          style={[
+            styles.modalSheet,
+            { height: sheetHeight, backgroundColor: colors.card },
+          ]}
           onPress={(e) => e.stopPropagation()}
         >
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{modalTitle}</Text>
+            <Text
+              style={[
+                styles.modalTitle,
+                { color: colors.textPrimary },
+              ]}
+            >
+              {modalTitle}
+            </Text>
             <Pressable onPress={onCancel} style={styles.closeButton} hitSlop={12}>
-              <Ionicons name="close" size={24} color="#1a1a1a" />
+              <Ionicons name="close" size={24} color={colors.textPrimary} />
             </Pressable>
           </View>
 
@@ -124,34 +136,86 @@ const ProfileEditModal = ({
                 style={({ pressed }) => [styles.photoButton, styles.takePhotoButton, pressed && styles.photoButtonPressed]}
                 onPress={takePhoto}
               >
-                <Ionicons name="camera" size={24} color="#4B5563" />
-                <Text style={[styles.photoButtonText, styles.takePhotoButtonText]}>Take Photo</Text>
+                <Ionicons
+                  name="camera"
+                  size={24}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.photoButtonText,
+                    styles.takePhotoButtonText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  Take Photo
+                </Text>
               </Pressable>
               <Pressable
                 style={({ pressed }) => [styles.photoButton, styles.uploadPhotoButton, pressed && styles.photoButtonPressed]}
                 onPress={uploadPhoto}
               >
-                <Ionicons name="image" size={24} color="#4B5563" />
-                <Text style={[styles.photoButtonText, styles.uploadPhotoButtonText]}>Upload Photo</Text>
+                <Ionicons
+                  name="image"
+                  size={24}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.photoButtonText,
+                    styles.uploadPhotoButtonText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  Upload Photo
+                </Text>
               </Pressable>
             </View>
 
-            <Text style={styles.inputLabel}>Name</Text>
+            <Text
+              style={[
+                styles.inputLabel,
+                { color: colors.textSecondary },
+              ]}
+            >
+              Name
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surface,
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                },
+              ]}
               value={name}
               onChangeText={setName}
               placeholder="Your name"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textSecondary}
             />
 
-            <Text style={styles.inputLabel}>Title</Text>
+            <Text
+              style={[
+                styles.inputLabel,
+                { color: colors.textSecondary },
+              ]}
+            >
+              Title
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surface,
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                },
+              ]}
               value={title}
               onChangeText={setTitle}
               placeholder="e.g. Board Game Enthusiast"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textSecondary}
             />
 
             <Pressable
@@ -174,7 +238,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     overflow: 'hidden',
@@ -191,7 +254,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1a1a1a',
   },
   closeButton: {
     padding: 4,
@@ -216,15 +278,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#F0FDF4',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#BBF7D0',
   },
   takePhotoButton: {
-    backgroundColor: '#fff',
-    borderColor: '#4B5563',
-    borderWidth: 1,
+    backgroundColor: 'transparent',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -238,12 +296,9 @@ const styles = StyleSheet.create({
     }),
   },
   takePhotoButtonText: {
-    color: '#4B5563',
   },
   uploadPhotoButton: {
-    backgroundColor: '#fff',
-    borderColor: '#4B5563',
-    borderWidth: 1,
+    backgroundColor: 'transparent',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -257,7 +312,6 @@ const styles = StyleSheet.create({
     }),
   },
   uploadPhotoButtonText: {
-    color: '#4B5563',
   },
   photoButtonPressed: {
     opacity: 0.8,
@@ -265,21 +319,18 @@ const styles = StyleSheet.create({
   photoButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#2E7D32',
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#f3f3f3',
     borderRadius: 10,
+    borderWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1a1a1a',
     marginBottom: 20,
   },
   updateButton: {

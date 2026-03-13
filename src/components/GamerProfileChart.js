@@ -8,6 +8,7 @@ import Animated, {
   runOnJS,
   withSpring,
 } from 'react-native-reanimated';
+import { useTheme } from '../context/ThemeContext';
 
 const CHART_LABELS = [
   'Strategy',
@@ -48,7 +49,7 @@ const DEFAULT_DATA = {
   ameritrash: 45,
 };
 
-const buildChartHtml = (data) => {
+const buildChartHtml = (data, palette) => {
   const values = CHART_KEYS.map((k) => Math.min(100, Math.max(0, data[k] ?? 0)));
   const labelsJson = JSON.stringify(CHART_LABELS);
   const valuesJson = JSON.stringify(values);
@@ -79,12 +80,12 @@ const buildChartHtml = (data) => {
         datasets: [{
           label: 'Interest',
           data: values,
-          borderColor: '#2E7D32',
-          backgroundColor: 'rgba(46, 125, 50, 0.25)',
+          borderColor: '${palette.series}',
+          backgroundColor: '${palette.seriesFill}',
           borderWidth: 2,
-          pointBackgroundColor: '#2E7D32',
+          pointBackgroundColor: '${palette.series}',
           pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#1B5E20'
+          pointHoverBackgroundColor: '${palette.seriesHover}'
         }]
       },
       options: {
@@ -95,9 +96,9 @@ const buildChartHtml = (data) => {
             min: 0,
             max: 100,
             ticks: { display: false },
-            pointLabels: { font: { size: 10 }, color: '#374151' },
-            grid: { color: 'rgba(55, 65, 81, 0.15)' },
-            angleLines: { color: 'rgba(55, 65, 81, 0.2)' }
+            pointLabels: { font: { size: 10 }, color: '${palette.axisLabel}' },
+            grid: { color: '${palette.grid}' },
+            angleLines: { color: '${palette.angleLines}' }
           }
         },
         plugins: {
@@ -111,7 +112,7 @@ const buildChartHtml = (data) => {
   `.trim();
 };
 
-const buildBarChartHtml = (data) => {
+const buildBarChartHtml = (data, palette) => {
   const values = CHART_KEYS.map((k) => Math.min(100, Math.max(0, data[k] ?? 0)));
   const labelsJson = JSON.stringify(CHART_LABELS);
   const valuesJson = JSON.stringify(values);
@@ -142,8 +143,8 @@ const buildBarChartHtml = (data) => {
         datasets: [{
           label: 'Interest',
           data: values,
-          backgroundColor: 'rgba(46, 125, 50, 0.7)',
-          borderColor: '#2E7D32',
+          backgroundColor: '${palette.barFill}',
+          borderColor: '${palette.barBorder}',
           borderWidth: 1
         }]
       },
@@ -155,12 +156,12 @@ const buildBarChartHtml = (data) => {
           x: {
             min: 0,
             max: 100,
-            grid: { color: 'rgba(55, 65, 81, 0.1)' },
-            ticks: { font: { size: 10 }, color: '#6B7280' }
+            grid: { color: '${palette.barGrid}' },
+            ticks: { font: { size: 10 }, color: '${palette.xTicks}' }
           },
           y: {
             grid: { display: false },
-            ticks: { font: { size: 9 }, color: '#374151', maxRotation: 0 }
+            ticks: { font: { size: 9 }, color: '${palette.yTicks}', maxRotation: 0 }
           }
         },
         plugins: {
@@ -191,8 +192,41 @@ const GamerProfileChart = ({
   const rotation = useSharedValue(0);
   const [showBarChart, setShowBarChart] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
-  const radarHtml = buildChartHtml(data);
-  const barHtml = buildBarChartHtml(data);
+  const { colors, isDark } = useTheme();
+
+  const chartPalette = isDark
+    ? {
+        // Series colors pulled from dark theme
+        series: colors.chartSeries,
+        seriesFill: colors.chartSeriesFill,
+        seriesHover: colors.chartSeriesHover,
+        barFill: colors.chartBarFill,
+        barBorder: colors.chartBarBorder,
+        // Axes / grid for dark background
+        axisLabel: '#E5E7EB',
+        grid: 'rgba(148, 163, 184, 0.35)',
+        angleLines: 'rgba(148, 163, 184, 0.6)',
+        barGrid: 'rgba(148, 163, 184, 0.35)',
+        xTicks: '#D1D5DB',
+        yTicks: '#E5E7EB',
+      }
+    : {
+        // Series colors pulled from light theme (green palette)
+        series: colors.chartSeries,
+        seriesFill: colors.chartSeriesFill,
+        seriesHover: colors.chartSeriesHover,
+        barFill: colors.chartBarFill,
+        barBorder: colors.chartBarBorder,
+        axisLabel: '#374151',
+        grid: 'rgba(55, 65, 81, 0.15)',
+        angleLines: 'rgba(55, 65, 81, 0.2)',
+        barGrid: 'rgba(55, 65, 81, 0.1)',
+        xTicks: '#6B7280',
+        yTicks: '#374151',
+      };
+
+  const radarHtml = buildChartHtml(data, chartPalette);
+  const barHtml = buildBarChartHtml(data, chartPalette);
 
   useAnimatedReaction(
     () => rotation.value >= FLIP_THRESHOLD,
@@ -217,10 +251,27 @@ const GamerProfileChart = ({
   return (
     <Pressable onPress={flip} style={styles.pressable}>
       <View style={styles.perspective}>
-        <Animated.View style={[styles.card, styles.cardContainer, cardAnimatedStyle]}>
+        <Animated.View
+          style={[
+            styles.card,
+            styles.cardContainer,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+            },
+            cardAnimatedStyle,
+          ]}
+        >
           {showBarChart ? (
             <View style={styles.barChartUnflip}>
-              <Text style={styles.title}>{backTitle}</Text>
+              <Text
+                style={[
+                  styles.title,
+                  { color: colors.textPrimary },
+                ]}
+              >
+                {backTitle}
+              </Text>
               <View style={styles.chartWrapper}>
                 <WebView
                   source={{ html: barHtml }}
@@ -234,7 +285,14 @@ const GamerProfileChart = ({
             </View>
           ) : (
             <>
-              <Text style={styles.title}>{title}</Text>
+              <Text
+                style={[
+                  styles.title,
+                  { color: colors.textPrimary },
+                ]}
+              >
+                {title}
+              </Text>
               <View style={styles.chartWrapper}>
                 <WebView
                   source={{ html: radarHtml }}
@@ -262,12 +320,10 @@ const styles = StyleSheet.create({
   },
   card: {
     overflow: 'visible',
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
     paddingBottom: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -286,7 +342,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
     marginBottom: 12,
     textAlign: 'center',
   },

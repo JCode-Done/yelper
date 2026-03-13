@@ -15,8 +15,10 @@ import { MOCK_GAMES, searchBoardGames } from "../api/boardgames";
 import FeaturedHorizontalScroll from "../components/FeaturedHorizontalScroll";
 import HorizontalThumbnails from "../components/HorizontalThumbnails";
 import SearchBar from "../components/SearchBar";
+import ThemeToggle from "../components/ThemeToggle";
 import { useFavorites } from "../context/FavoritesContext";
 import { useProfile } from "../context/ProfileContext";
+import { useTheme } from "../context/ThemeContext";
 
 const DEBOUNCE_MS = 350;
 
@@ -24,6 +26,7 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { isDark, colors } = useTheme();
   const thumbnailSize = Math.min(140, Math.round(width * 0.28));
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -131,7 +134,12 @@ const HomeScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+      ]}
+    >
       <View style={styles.iconContainer}>
         <View style={styles.headerLeft}>
           <View style={styles.iconCircle}>
@@ -141,7 +149,14 @@ const HomeScreen = () => {
               color="#fff"
             />
           </View>
-          <Text style={styles.iconLabel}>Game • Tap</Text>
+          <Text
+            style={[
+              styles.iconLabel,
+              { color: colors.textPrimary },
+            ]}
+          >
+            Game • Tap
+          </Text>
         </View>
         <Pressable
           style={styles.headerRight}
@@ -156,15 +171,23 @@ const HomeScreen = () => {
           ) : (
             <View style={[styles.headerAvatar]} />
           )}
-          <Text style={styles.profileName} numberOfLines={1}>
+          <Text
+            style={[
+              styles.profileName,
+              { color: colors.textSecondary },
+            ]}
+            numberOfLines={1}
+          >
             {profileName}
           </Text>
         </Pressable>
       </View>
+      <ThemeToggle />
       <SearchBar
         value={searchInput}
         onSearchChange={handleSearchChange}
         onSearchSubmit={handleSearchSubmit}
+        isDark={isDark}
         onCategoryPress={(cat) => {
           if (cat.id === 'euro' || cat.id === 'strategy') {
             setSearchInput(cat.label);
@@ -199,7 +222,14 @@ const HomeScreen = () => {
               onItemPress={(game) => navigation.navigate("GameDetail", { game })}
             />
             <View style={styles.hotnessSection}>
-              <Text style={styles.hotnessTitle}>Hotness</Text>
+              <Text
+                style={[
+                  styles.hotnessTitle,
+                  { color: colors.textPrimary },
+                ]}
+              >
+                Hotness
+              </Text>
               <HorizontalThumbnails
                 thumbnailSize={thumbnailSize}
                 items={MOCK_GAMES.filter(
@@ -225,7 +255,6 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
   },
   iconContainer: {
     flexDirection: "row",
@@ -234,9 +263,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     paddingHorizontal: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
   },
   headerLeft: {
     flexDirection: "row",
@@ -258,14 +284,12 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#1a1a1a",
     textAlign: "right",
     maxWidth: 120,
   },
   iconLabel: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1a1a1a",
   },
   iconCircle: {
     width: 44,
@@ -282,7 +306,6 @@ const styles = StyleSheet.create({
   hotnessTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1a1a1a",
     marginHorizontal: 15,
     marginBottom: 4,
   },
@@ -292,13 +315,11 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     padding: 20,
-    backgroundColor: "#FEE2E2",
     marginHorizontal: 15,
     marginTop: 10,
     borderRadius: 8,
   },
   errorText: {
-    color: "#B91C1C",
     textAlign: "center",
   },
   list: {
@@ -313,8 +334,6 @@ const styles = StyleSheet.create({
   resultItem: {
     flexDirection: "row",
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
     alignItems: "center",
     position: "relative",
   },

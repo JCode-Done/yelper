@@ -5,11 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import ProfileEditModal from '../components/ProfileEditModal';
 import GamerProfileChart from '../components/GamerProfileChart';
 import { useProfile } from '../context/ProfileContext';
+import { useTheme } from '../context/ThemeContext';
 
 const ProfileScreen = () => {
   const { avatar, name, setAvatar, setName } = useProfile();
   const [title, setTitle] = useState('Board Game Enthusiast');
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const { colors } = useTheme();
 
   const yearsGaming = 8;
   const gamerProfileData = {
@@ -38,7 +40,7 @@ const ProfileScreen = () => {
   return (
     <>
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
@@ -56,13 +58,39 @@ const ProfileScreen = () => {
             <Ionicons name="pencil" size={18} color="#fff" />
           </Pressable>
         </View>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.title}>
+        <Text
+          style={[
+            styles.name,
+            { color: colors.textPrimary },
+          ]}
+        >
+          {name}
+        </Text>
+        <Text
+          style={[
+            styles.title,
+            { color: colors.textSecondary },
+          ]}
+        >
           {title} · {yearsGaming} years gaming
         </Text>
         <View style={styles.bioSection}>
-          <Text style={styles.bioLabel}>About</Text>
-          <Text style={styles.bio}>{bio}</Text>
+          <Text
+            style={[
+              styles.bioLabel,
+              { color: colors.textSecondary },
+            ]}
+          >
+            About
+          </Text>
+          <Text
+            style={[
+              styles.bio,
+              { color: colors.textPrimary },
+            ]}
+          >
+            {bio}
+          </Text>
         </View>
 
         <View style={styles.chartSection}>
@@ -86,7 +114,6 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   content: {
     alignItems: 'center',
@@ -119,20 +146,17 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1a1a1a',
     marginTop: 16,
     textAlign: 'center',
   },
   title: {
     fontSize: 16,
-    color: '#6B7280',
     marginTop: 4,
     textAlign: 'center',
   },
   bioSection: {
     marginTop: 32,
     alignSelf: 'stretch',
-    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 20,
   },

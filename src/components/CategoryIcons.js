@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 const CATEGORIES = [
   { id: 'card', label: 'Card games', icon: 'card-outline' },
@@ -17,11 +18,16 @@ const CATEGORIES = [
 ];
 
 const CategoryIcons = ({ onCategoryPress }) => {
+  const { isDark, colors } = useTheme();
+
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[
+        styles.container,
+        isDark && { backgroundColor: colors.card },
+      ]}
     >
       {CATEGORIES.map((cat, index) => (
         <Pressable
@@ -34,9 +40,19 @@ const CategoryIcons = ({ onCategoryPress }) => {
           ]}
         >
           <View style={styles.iconWrapper}>
-            <Ionicons name={cat.icon} size={24} color="#4B5563" />
+            <Ionicons
+              name={cat.icon}
+              size={24}
+              color={isDark ? colors.textSecondary : '#4B5563'}
+            />
           </View>
-          <Text style={styles.label} numberOfLines={2}>
+          <Text
+            style={[
+              styles.label,
+              { color: isDark ? colors.textSecondary : '#6B7280' },
+            ]}
+            numberOfLines={2}
+          >
             {cat.label}
           </Text>
         </Pressable>

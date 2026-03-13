@@ -1,9 +1,11 @@
 import React, { useLayoutEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import MediaPlayer from '../components/MediaPlayer';
+import { useTheme } from '../context/ThemeContext';
 
 const VideoPlayerScreen = ({ route, navigation }) => {
   const { videoId, title, subtitle, source, mode } = route?.params ?? {};
+  const { colors } = useTheme();
 
   useLayoutEffect(() => {
     if (title && navigation?.setOptions) {
@@ -16,14 +18,31 @@ const VideoPlayerScreen = ({ route, navigation }) => {
 
   if (!mediaSource) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.error}>No video selected</Text>
+      <View
+        style={[
+          styles.centered,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <Text
+          style={[
+            styles.error,
+            { color: colors.textSecondary },
+          ]}
+        >
+          No video selected
+        </Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: '#000' },
+      ]}
+    >
       <MediaPlayer
         source={mediaSource}
         mode={mode ?? 'video'}

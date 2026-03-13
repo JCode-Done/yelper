@@ -17,6 +17,7 @@ const SearchBar = ({
   onCategoryPress,
   placeholder = 'Search board games...',
   value,
+  isDark = false,
 }) => {
   const [term, setTerm] = useState('');
   const isControlled = value !== undefined;
@@ -36,16 +37,33 @@ const SearchBar = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        isDark && styles.containerDark,
+      ]}
+    >
       <View style={styles.row}>
-      <View style={styles.background}>
+      <View
+        style={[
+          styles.background,
+          isDark && styles.backgroundDark,
+        ]}
+      >
         <View style={styles.iconWrapper}>
-          <Ionicons name="search" size={20} color="#6B7280" />
+          <Ionicons
+            name="search"
+            size={20}
+            color={isDark ? '#9CA3AF' : '#6B7280'}
+          />
         </View>
-        <TextInput
-          style={styles.input}
+          <TextInput
+          style={[
+            styles.input,
+            isDark && styles.inputDark,
+          ]}
           placeholder={placeholder}
-          placeholderTextColor="#6B7280"
+          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
           value={inputValue}
           onChangeText={handleChangeText}
           onSubmitEditing={handleSubmit}
@@ -62,7 +80,11 @@ const SearchBar = ({
             hitSlop={8}
             style={[styles.clear, styles.iconWrapper]}
           >
-            <Ionicons name="close-circle" size={18} color="#6B7280" />
+            <Ionicons
+              name="close-circle"
+              size={18}
+              color={isDark ? '#9CA3AF' : '#6B7280'}
+            />
           </Pressable>
         )}
       </View>
@@ -71,8 +93,17 @@ const SearchBar = ({
         hitSlop={8}
         style={styles.filter}
       >
-        <View style={styles.filterCircle}>
-          <Ionicons name="filter" size={20} color="#6B7280" />
+        <View
+          style={[
+            styles.filterCircle,
+            isDark && styles.filterCircleDark,
+          ]}
+        >
+          <Ionicons
+            name="filter"
+            size={20}
+            color={isDark ? '#E5E7EB' : '#6B7280'}
+          />
         </View>
       </Pressable>
       </View>
@@ -100,6 +131,9 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  containerDark: {
+    backgroundColor: '#020617',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -114,6 +148,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
+  backgroundDark: {
+    backgroundColor: '#111827',
+  },
   iconWrapper: {
     marginRight: 8,
     justifyContent: 'center',
@@ -124,6 +161,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1a1a1a',
     paddingVertical: 0,
+  },
+  inputDark: {
+    color: '#F9FAFB',
   },
   clear: {
     marginLeft: 8,
@@ -138,6 +178,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E5E5',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  filterCircleDark: {
+    backgroundColor: '#111827',
   },
 });
 
