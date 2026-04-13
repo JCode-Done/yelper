@@ -162,6 +162,39 @@ const MOCK_GAMES = [
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Client-side filters after search/tag fetch (keyword, player count, playtime). */
+const applyClientFilters = (games, filters, limit) => {
+  if (!filters || typeof filters !== "object") {
+    return games.slice(0, limit);
+  }
+  let out = games;
+  const kw = (filters.keyword || "").trim().toLowerCase();
+  if (kw) {
+    out = out.filter(
+      (g) =>
+        (g.name && g.name.toLowerCase().includes(kw)) ||
+        (g.tags &&
+          Array.isArray(g.tags) &&
+          g.tags.some((t) => String(t).toLowerCase().includes(kw))),
+    );
+  }
+  const minP = filters.minPlayers;
+  if (minP != null && typeof minP === "number" && !Number.isNaN(minP)) {
+    out = out.filter(
+      (g) => g.maxPlayers != null && g.maxPlayers >= minP,
+    );
+  }
+  const maxT = filters.maxPlaytime;
+  if (maxT != null && typeof maxT === "number" && !Number.isNaN(maxT)) {
+    out = out.filter((g) => {
+      const hi = g.maxPlaytime ?? g.minPlaytime;
+      if (hi == null) return true;
+      return hi <= maxT;
+    });
+  }
+  return out.slice(0, limit);
+};
+
 const decode = (s) =>
   (s || "")
     .replace(/&amp;/g, "&")
@@ -258,22 +291,26 @@ const fetchGameDetails = async (gameIds) => {
  * @returns {Promise<Object>} { games: [], error: string|null }
  */
 export { MOCK_GAMES };
-export const searchBoardGames = async ({ term = "", tag, limit = 20 }) => {
+export const searchBoardGames = async ({
+  term = "",
+  tag,
+  limit = 20,
+  filters = null,
+}) => {
   const query = (term || "").trim();
 
   if (tag) {
     await delay(200);
-    const games = MOCK_GAMES.filter(
+    let games = MOCK_GAMES.filter(
       (g) => g.tags && Array.isArray(g.tags) && g.tags.includes(tag)
-    )
-      .slice(0, limit)
-      .map((g) => ({ ...g }));
+    ).map((g) => ({ ...g }));
+    games = applyClientFilters(games, filters, limit);
     return { games, error: null };
   }
 
   if (!query) {
     await delay(200);
-    let games = MOCK_GAMES.slice(0, limit).map((g) => ({ ...g }));
+    let games = MOCK_GAMES.map((g) => ({ ...g }));
     try {
       const details = await fetchGameDetails(games.map((g) => g.id));
       const detailMap = Object.fromEntries(details.map((d) => [d.id, d]));
@@ -283,6 +320,7 @@ export const searchBoardGames = async ({ term = "", tag, limit = 20 }) => {
         imageLarge: detailMap[g.id]?.imageLarge ?? null,
       }));
     } catch (_) {}
+    games = applyClientFilters(games, filters, limit);
     return { games, error: null };
   }
 
@@ -298,7 +336,7 @@ export const searchBoardGames = async ({ term = "", tag, limit = 20 }) => {
     const details = await fetchGameDetails(searchGames.map((g) => g.id));
     const detailMap = Object.fromEntries(details.map((d) => [d.id, d]));
 
-    const games = searchGames.map((g) => {
+    let games = searchGames.map((g) => {
       const d = detailMap[g.id];
       return {
         ...g,
@@ -315,6 +353,7 @@ export const searchBoardGames = async ({ term = "", tag, limit = 20 }) => {
       };
     });
 
+    games = applyClientFilters(games, filters, limit);
     return { games, error: null };
   } catch (error) {
     console.warn("BGG API failed, using mock data:", error.message);
@@ -335,6 +374,7 @@ export const searchBoardGames = async ({ term = "", tag, limit = 20 }) => {
         imageLarge: detailMap[g.id]?.imageLarge ?? null,
       }));
     } catch (_) {}
+    games = applyClientFilters(games, filters, limit);
     return { games, error: null };
   }
 };

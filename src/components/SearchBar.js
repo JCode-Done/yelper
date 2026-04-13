@@ -93,18 +93,27 @@ const SearchBar = ({
         hitSlop={8}
         style={styles.filter}
       >
-        <View
-          style={[
-            styles.filterCircle,
-            isDark && styles.filterCircleDark,
-          ]}
-        >
-          <Ionicons
-            name="filter"
-            size={20}
-            color={isDark ? '#E5E7EB' : '#6B7280'}
-          />
-        </View>
+        {({ pressed }) => (
+          <View
+            style={[
+              styles.filterCircle,
+              isDark && styles.filterCircleDark,
+              pressed && styles.filterCirclePressed,
+            ]}
+          >
+            <Ionicons
+              name="filter"
+              size={20}
+              color={
+                pressed
+                  ? '#F9FAFB'
+                  : isDark
+                    ? '#E5E7EB'
+                    : '#6B7280'
+              }
+            />
+          </View>
+        )}
       </Pressable>
       </View>
       <CategoryIcons onCategoryPress={onCategoryPress} />
@@ -181,6 +190,9 @@ const styles = StyleSheet.create({
   },
   filterCircleDark: {
     backgroundColor: '#111827',
+  },
+  filterCirclePressed: {
+    backgroundColor: '#000000',
   },
 });
 

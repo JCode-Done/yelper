@@ -86,7 +86,9 @@ const SignInScreen = () => {
             style={({ pressed }) => [styles.linkButton, pressed && styles.linkPressed]}
             onPress={() => navigation.navigate('SignUp')}
           >
-            <Text style={styles.linkText}>Don't have an account? Sign up</Text>
+            <Text style={styles.linkText}>
+              {"Don't have an account? Sign up"}
+            </Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

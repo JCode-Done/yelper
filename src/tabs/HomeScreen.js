@@ -15,6 +15,7 @@ import { MOCK_GAMES, searchBoardGames } from "../api/boardgames";
 import FeaturedHorizontalScroll from "../components/FeaturedHorizontalScroll";
 import HorizontalThumbnails from "../components/HorizontalThumbnails";
 import SearchBar from "../components/SearchBar";
+import AddCustomFilter from "../components/AddCustomFilter";
 import ThemeToggle from "../components/ThemeToggle";
 import { useFavorites } from "../context/FavoritesContext";
 import { useProfile } from "../context/ProfileContext";
@@ -32,32 +33,41 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState("");
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [customFilters, setCustomFilters] = useState(null);
+  const [activeTag, setActiveTag] = useState(null);
   const debounceRef = useRef(null);
   const { avatar, name: profileName } = useProfile();
 
-  const runSearch = useCallback(async (term, additive = false, tag = null) => {
-    setLoading(true);
-    setError(null);
-    const { games, error: apiError } = await searchBoardGames(
-      tag ? { tag } : { term }
-    );
-    setLoading(false);
-    if (apiError) {
-      setError(apiError);
-    } else if (additive) {
-      setResults((prev) => {
-        const existingIds = new Set(games.map((g) => g.id));
-        const pastOnly = prev.filter((r) => !existingIds.has(r.id));
-        return [...games, ...pastOnly];
-      });
-    } else {
-      setResults(games);
-    }
-  }, []);
+  const runSearch = useCallback(
+    async (term, additive = false, tag = null, filtersOverride) => {
+      setLoading(true);
+      setError(null);
+      const filters =
+        filtersOverride !== undefined ? filtersOverride : customFilters;
+      const { games, error: apiError } = await searchBoardGames(
+        tag ? { tag, filters } : { term, filters },
+      );
+      setLoading(false);
+      if (apiError) {
+        setError(apiError);
+      } else if (additive) {
+        setResults((prev) => {
+          const existingIds = new Set(games.map((g) => g.id));
+          const pastOnly = prev.filter((r) => !existingIds.has(r.id));
+          return [...games, ...pastOnly];
+        });
+      } else {
+        setResults(games);
+      }
+    },
+    [customFilters],
+  );
 
   const handleSearchChange = useCallback(
     (term) => {
       setSearchInput(term);
+      setActiveTag(null);
       if (debounceRef.current) clearTimeout(debounceRef.current);
       const trimmed = term.trim();
       if (!trimmed) {
@@ -77,9 +87,24 @@ const HomeScreen = () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       const trimmed = term.trim();
       if (!trimmed) return;
+      setActiveTag(null);
       runSearch(trimmed, true);
     },
     [runSearch]
+  );
+
+  const handleCustomFilterApply = useCallback(
+    (nextFilters) => {
+      setCustomFilters(nextFilters);
+      const trimmed = searchInput.trim();
+      if (!trimmed && !nextFilters && !activeTag) {
+        setResults([]);
+        setError(null);
+        return;
+      }
+      runSearch(trimmed, false, activeTag, nextFilters);
+    },
+    [runSearch, searchInput, activeTag],
   );
 
   const renderItem = ({ item }) => {
@@ -188,14 +213,22 @@ const HomeScreen = () => {
         onSearchChange={handleSearchChange}
         onSearchSubmit={handleSearchSubmit}
         isDark={isDark}
+        onFilterPress={() => setFilterModalVisible(true)}
         onCategoryPress={(cat) => {
           if (cat.id === 'euro' || cat.id === 'strategy') {
             setSearchInput(cat.label);
+            setActiveTag(cat.id);
             runSearch('', false, cat.id);
           } else {
             handleSearchChange(cat.label);
           }
         }}
+      />
+      <AddCustomFilter
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        onApply={handleCustomFilterApply}
+        initialFilters={customFilters}
       />
       <FlatList
         style={styles.list}

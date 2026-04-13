@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getOrCreateVoterId } from '../utils/voterId';
 
 const ProfileContext = createContext(null);
 
@@ -8,9 +9,16 @@ const DEFAULT_AVATAR =
 export const ProfileProvider = ({ children }) => {
   const [avatar, setAvatar] = useState(DEFAULT_AVATAR);
   const [name, setName] = useState('Alex Rivera');
+  const [voterId, setVoterId] = useState(null);
+
+  useEffect(() => {
+    getOrCreateVoterId().then(setVoterId);
+  }, []);
 
   return (
-    <ProfileContext.Provider value={{ avatar, name, setAvatar, setName }}>
+    <ProfileContext.Provider
+      value={{ avatar, name, setAvatar, setName, voterId }}
+    >
       {children}
     </ProfileContext.Provider>
   );

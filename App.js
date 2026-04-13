@@ -1,4 +1,6 @@
 import React from 'react';
+// Initialize Firebase (Firestore + optional RTDB) — config via EXPO_PUBLIC_* in `.env`
+import './src/config/firebase';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -14,6 +16,8 @@ import HomeScreen from './src/tabs/HomeScreen';
 import FavoritesScreen from './src/tabs/FavoritesScreen';
 import ProfileScreen from './src/tabs/ProfileScreen';
 import VideosScreen from './src/tabs/VideosScreen';
+import PollsStack from './src/navigation/PollsStack';
+import RetrieveScreen from './src/tabs/RetrieveScreen';
 import GameDetailScreen from './src/screens/GameDetailScreen';
 import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
 import SplashScreen from './src/screens/SplashScreen';
@@ -43,6 +47,8 @@ const TabNavigator = () => {
             Favorites: focused ? 'heart' : 'heart-outline',
             Profile: focused ? 'person' : 'person-outline',
             Videos: focused ? 'videocam' : 'videocam-outline',
+            Polls: focused ? 'bar-chart' : 'bar-chart-outline',
+            Retrieve: focused ? 'cloud-download' : 'cloud-download-outline',
           };
           return <Ionicons name={iconMap[route.name]} size={size} color={color} />;
         },
@@ -52,6 +58,12 @@ const TabNavigator = () => {
       <Tab.Screen name="Favorites" component={FavoritesScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
       <Tab.Screen name="Videos" component={VideosScreen} />
+      <Tab.Screen name="Polls" component={PollsStack} />
+      <Tab.Screen
+        name="Retrieve"
+        component={RetrieveScreen}
+        options={{ title: 'Retrieve' }}
+      />
     </Tab.Navigator>
   );
 };
