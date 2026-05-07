@@ -10,6 +10,7 @@ import { StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { FavoritesProvider } from './src/context/FavoritesContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ProfileProvider } from './src/context/ProfileContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import HomeScreen from './src/tabs/HomeScreen';
@@ -23,6 +24,9 @@ import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
 import SplashScreen from './src/screens/SplashScreen';
 import SignInScreen from './src/screens/SignInScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
+import ForgotUsernameScreen from './src/screens/ForgotUsernameScreen';
+import SubscriptionScreen from './src/screens/SubscriptionScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -70,6 +74,8 @@ const TabNavigator = () => {
 
 function AppNavigator() {
   const { colors, isDark } = useTheme();
+  const { user, initializing } = useAuth();
+
   return (
     <NavigationContainer>
       <StatusBar style={isDark ? 'light' : 'dark'} />
@@ -79,42 +85,70 @@ function AppNavigator() {
           headerTintColor: colors.textPrimary,
         }}
       >
-                <Stack.Screen
-                  name="Splash"
-                  component={SplashScreen}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="SignIn"
-                  component={SignInScreen}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="SignUp"
-                  component={SignUpScreen}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="MainTabs"
-                  component={TabNavigator}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="GameDetail"
-                  component={GameDetailScreen}
-                  options={{
-                    presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
-                    headerShown: true,
-                  }}
-                />
-                <Stack.Screen
-                  name="VideoPlayer"
-                  component={VideoPlayerScreen}
-                  options={{
-                    presentation: 'modal',
-                    headerShown: true,
-                  }}
-                />
+        {initializing ? (
+          <Stack.Screen
+            name="Splash"
+            component={SplashScreen}
+            options={{ headerShown: false }}
+          />
+        ) : user ? (
+          <>
+            <Stack.Screen
+              name="MainTabs"
+              component={TabNavigator}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="GameDetail"
+              component={GameDetailScreen}
+              options={{
+                presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
+                headerShown: true,
+              }}
+            />
+            <Stack.Screen
+              name="VideoPlayer"
+              component={VideoPlayerScreen}
+              options={{
+                presentation: 'modal',
+                headerShown: true,
+              }}
+            />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              name="Splash"
+              component={SplashScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="SignIn"
+              component={SignInScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="SignUp"
+              component={SignUpScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ForgotUsername"
+              component={ForgotUsernameScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Subscription"
+              component={SubscriptionScreen}
+              options={{ headerShown: false }}
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -124,11 +158,13 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <ThemeProvider>
-        <FavoritesProvider>
-          <ProfileProvider>
-            <AppNavigator />
-          </ProfileProvider>
-        </FavoritesProvider>
+        <AuthProvider>
+          <FavoritesProvider>
+            <ProfileProvider>
+              <AppNavigator />
+            </ProfileProvider>
+          </FavoritesProvider>
+        </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
