@@ -12,11 +12,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
-const CARD_TYPES = ['Visa', 'Mastercard', 'Amex', 'Discover'];
+const CARD_TYPES = [
+  { label: 'Visa', icon: 'cc-visa' },
+  { label: 'Mastercard', icon: 'cc-mastercard' },
+  { label: 'Amex', icon: 'cc-amex' },
+  { label: 'Discover', icon: 'cc-discover' },
+];
 
 const formatCardNumber = (raw) => {
   const digits = raw.replace(/\D/g, '').slice(0, 16);
@@ -146,11 +151,11 @@ const SubscriptionScreen = () => {
               Card Type
             </Text>
             <View style={styles.cardTypeRow}>
-              {CARD_TYPES.map((type) => {
-                const selected = cardType === type;
+              {CARD_TYPES.map(({ label, icon }) => {
+                const selected = cardType === label;
                 return (
                   <Pressable
-                    key={type}
+                    key={label}
                     style={[
                       styles.cardTypeChip,
                       {
@@ -160,16 +165,21 @@ const SubscriptionScreen = () => {
                     ]}
                     onPress={() => {
                       setError(null);
-                      setCardType(type);
+                      setCardType(label);
                     }}
                   >
+                    <FontAwesome5
+                      name={icon}
+                      size={18}
+                      color={selected ? '#fff' : colors.textPrimary}
+                    />
                     <Text
                       style={[
                         styles.cardTypeText,
                         { color: selected ? '#fff' : colors.textPrimary },
                       ]}
                     >
-                      {type}
+                      {label}
                     </Text>
                   </Pressable>
                 );
@@ -301,6 +311,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cardTypeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     borderWidth: 1.5,
     borderRadius: 10,
     paddingHorizontal: 16,
