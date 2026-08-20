@@ -52,6 +52,8 @@ const GameDetailScreen = ({ route, navigation }) => {
   const game = useMemo(() => enrichFromIndex(rawGame), [rawGame]);
   const { colors, isDark } = useTheme();
   const [lightbox, setLightbox] = useState(null);
+  const { width: screenWidth } = useWindowDimensions();
+  const heroHeight = Math.round(screenWidth * 0.75);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -94,9 +96,6 @@ const GameDetailScreen = ({ route, navigation }) => {
       </View>
     );
   }
-
-  const { width: screenWidth } = useWindowDimensions();
-  const heroHeight = Math.round(screenWidth * 0.75);
   const playtime = formatPlaytime(game.minPlaytime, game.maxPlaytime);
   const players = formatPlayers(game.minPlayers, game.maxPlayers);
   const heroUri = gameHeroUri(game);
@@ -108,21 +107,16 @@ const GameDetailScreen = ({ route, navigation }) => {
       style={styles.container}
       contentContainerStyle={styles.content}
     >
-      <View style={[styles.heroContainer, { height: heroHeight, backgroundColor: colors.border }]}>
+      <Pressable
+        onPress={() => heroUri && setLightbox({ url: heroUri, caption: game.name })}
+        style={[styles.heroContainer, { height: heroHeight, backgroundColor: colors.border }]}
+      >
         {heroUri ? (
-          <Pressable
-            onPress={() =>
-              setLightbox({
-                url: heroUri,
-                caption: game.name,
-              })
-            }
-            style={styles.heroPressable}
-          >
+          <>
             <GameImage
               uri={game.imageLarge}
               fallbackUri={game.image}
-              style={styles.heroImage}
+              style={{ width: screenWidth, height: heroHeight }}
               contentFit="cover"
             />
             <LinearGradient
@@ -136,7 +130,7 @@ const GameDetailScreen = ({ route, navigation }) => {
                 <Text style={styles.heroRating}>★ {game.rating.toFixed(1)}</Text>
               )}
             </LinearGradient>
-          </Pressable>
+          </>
         ) : (
           <View style={styles.heroPlaceholder}>
             <Ionicons name="game-controller-outline" size={48} color={colors.textSecondary} />
@@ -145,7 +139,7 @@ const GameDetailScreen = ({ route, navigation }) => {
             </Text>
           </View>
         )}
-      </View>
+      </Pressable>
       {thumbs.length > 0 ? (
         <ScrollView
           horizontal
@@ -364,15 +358,6 @@ const styles = StyleSheet.create({
   heroContainer: {
     width: "100%",
     overflow: "hidden",
-  },
-  heroPressable: {
-    width: "100%",
-    height: "100%",
-  },
-  heroImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: "100%",
-    height: "100%",
   },
   heroGradient: {
     position: "absolute",

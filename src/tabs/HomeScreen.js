@@ -15,7 +15,6 @@ import {
   BOARDGAME_INDEX,
   searchBoardGames,
   fetchBggHotList,
-  fetchBggIndex,
 } from "../api/boardgames";
 import FeaturedHorizontalScroll from "../components/FeaturedHorizontalScroll";
 import HorizontalThumbnails from "../components/HorizontalThumbnails";
@@ -45,10 +44,6 @@ const HomeScreen = () => {
   const debounceRef = useRef(null);
   const { avatar, username: profileName } = useProfile();
   const [hotGames, setHotGames] = useState([]);
-  const [indexGames, setIndexGames] = useState([]);
-  const [indexLoading, setIndexLoading] = useState(false);
-  const [indexProgress, setIndexProgress] = useState(null);
-  const [indexLoaded, setIndexLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,18 +53,6 @@ const HomeScreen = () => {
     return () => { cancelled = true; };
   }, []);
 
-  const loadFullIndex = useCallback(async () => {
-    if (indexLoading || indexLoaded) return;
-    setIndexLoading(true);
-    setIndexProgress({ loaded: 0, total: 1 });
-    const { games } = await fetchBggIndex((loaded, total) => {
-      setIndexProgress({ loaded, total });
-    });
-    setIndexGames(games);
-    setIndexLoaded(true);
-    setIndexLoading(false);
-    setIndexProgress(null);
-  }, [indexLoading, indexLoaded]);
 
   const runSearch = useCallback(
     async (term, additive = false, tag = null, filtersOverride) => {
@@ -313,49 +296,6 @@ const HomeScreen = () => {
               />
             </View>
 
-            {!indexLoaded && !indexLoading && (
-              <Pressable
-                style={({ pressed }) => [
-                  styles.browseButton,
-                  { backgroundColor: isDark ? "#E5E7EB" : "#111827" },
-                  pressed && { opacity: 0.85 },
-                ]}
-                onPress={loadFullIndex}
-              >
-                <Ionicons
-                  name="globe-outline"
-                  size={18}
-                  color={isDark ? "#111827" : "#fff"}
-                  style={{ marginRight: 8 }}
-                />
-                <Text
-                  style={[
-                    styles.browseButtonText,
-                    { color: isDark ? "#111827" : "#fff" },
-                  ]}
-                >
-                  Browse All BGG Games
-                </Text>
-              </Pressable>
-            )}
-
-            {indexLoading && indexProgress && (
-              <View style={styles.indexLoadingContainer}>
-                <ActivityIndicator size="small" color={colors.textPrimary} />
-                <Text style={[styles.indexLoadingText, { color: colors.textSecondary }]}>
-                  Loading BGG index… {indexProgress.loaded}/{indexProgress.total}
-                </Text>
-              </View>
-            )}
-
-            {indexLoaded && indexGames.length > 0 && (
-              <View style={styles.indexSection}>
-                <Text style={[styles.hotnessTitle, { color: colors.textPrimary }]}>
-                  BGG Top Games ({indexGames.length})
-                </Text>
-                {indexGames.map((game) => renderItem({ item: game }))}
-              </View>
-            )}
           </>
         }
       />
@@ -487,34 +427,6 @@ const styles = StyleSheet.create({
   ratingText: {
     color: "#2E7D32",
     fontWeight: "600",
-  },
-  browseButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 15,
-    marginTop: 16,
-    marginBottom: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
-  browseButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  indexLoadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 20,
-    gap: 10,
-  },
-  indexLoadingText: {
-    fontSize: 14,
-  },
-  indexSection: {
-    paddingTop: 12,
-    paddingBottom: 20,
   },
 });
 
