@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useLayoutEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,10 +6,32 @@ import {
   StyleSheet,
   Pressable,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
+import { BOARDGAME_INDEX } from "../api/boardgames";
 import ImageLightbox from "../components/ImageLightbox";
 import GameImage, { gameHeroUri, gameSheetThumbs } from "../components/GameImage";
+
+const indexById = new Map(BOARDGAME_INDEX.map((g) => [String(g.id), g]));
+
+const enrichFromIndex = (game) => {
+  if (!game) return game;
+  const src = indexById.get(String(game.id));
+  if (!src) return game;
+  return {
+    ...src,
+    ...Object.fromEntries(
+      Object.entries(game).filter(([, v]) => v != null && v !== ""),
+    ),
+    image: src.image || game.image,
+    imageLarge: src.imageLarge || game.imageLarge,
+    imageViews: src.imageViews || game.imageViews,
+    description: game.description || src.description,
+    categories: src.categories || game.categories,
+    mechanics: src.mechanics || game.mechanics,
+    gameTypes: src.gameTypes || game.gameTypes,
+  };
+};
 
 const formatPlaytime = (min, max) => {
   if (min == null && max == null) return null;
@@ -24,7 +46,8 @@ const formatPlayers = (min, max) => {
 };
 
 const GameDetailScreen = ({ route, navigation }) => {
-  const { game } = route.params || {};
+  const rawGame = route.params?.game;
+  const game = useMemo(() => enrichFromIndex(rawGame), [rawGame]);
   const { colors, isDark } = useTheme();
   const [lightbox, setLightbox] = useState(null);
 
@@ -149,6 +172,12 @@ const GameDetailScreen = ({ route, navigation }) => {
           {game.rating != null && (
             <Text style={styles.rating}>★ {game.rating.toFixed(1)}</Text>
           )}
+          {game.rank != null && (
+            <View style={styles.rankBadge}>
+              <Ionicons name="trophy-outline" size={13} color="#B8860B" />
+              <Text style={styles.rankText}>#{game.rank}</Text>
+            </View>
+          )}
           {game.year != null && (
             <Text
               style={[
@@ -171,83 +200,101 @@ const GameDetailScreen = ({ route, navigation }) => {
           )}
         </View>
 
-        {(game.players || game.types?.length) ? (
-          <Text
-            style={[
-              styles.meta,
-              { color: colors.textSecondary, marginBottom: 16 },
-            ]}
-          >
-            {game.players ? `${game.players} players` : null}
-            {game.players && game.types?.length ? " · " : null}
-            {(game.mechanics?.length ? game.mechanics : game.types)
-              ?.slice(0, 6)
-              .join(" · ")}
-          </Text>
-        ) : null}
-
         <View style={[styles.stats, { borderColor: colors.border }]}>
           {players && (
             <View style={styles.stat}>
-              <Text
-                style={[
-                  styles.statLabel,
-                  { color: colors.textSecondary },
-                ]}
-              >
+              <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
                 Players
               </Text>
-              <Text
-                style={[
-                  styles.statValue,
-                  { color: colors.textPrimary },
-                ]}
-              >
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
                 {players}
               </Text>
             </View>
           )}
           {playtime && (
             <View style={styles.stat}>
-              <Text
-                style={[
-                  styles.statLabel,
-                  { color: colors.textSecondary },
-                ]}
-              >
+              <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
                 Play Time
               </Text>
-              <Text
-                style={[
-                  styles.statValue,
-                  { color: colors.textPrimary },
-                ]}
-              >
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
                 {playtime}
               </Text>
             </View>
           )}
           {game.minAge != null && (
             <View style={styles.stat}>
-              <Text
-                style={[
-                  styles.statLabel,
-                  { color: colors.textSecondary },
-                ]}
-              >
+              <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
                 Age
               </Text>
-              <Text
-                style={[
-                  styles.statValue,
-                  { color: colors.textPrimary },
-                ]}
-              >
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>
                 {game.minAge}+
               </Text>
             </View>
           )}
         </View>
+
+        {game.gameTypes?.length > 0 && (
+          <View style={styles.chipSection}>
+            <Text style={[styles.chipSectionTitle, { color: colors.textSecondary }]}>
+              Type
+            </Text>
+            <View style={styles.chipRow}>
+              {game.gameTypes.map((t) => (
+                <View
+                  key={t}
+                  style={[styles.chip, { backgroundColor: isDark ? "#2D3748" : "#EBF5FF" }]}
+                >
+                  <Text style={[styles.chipText, { color: isDark ? "#90CDF4" : "#2B6CB0" }]}>
+                    {t}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {game.categories?.length > 0 && (
+          <View style={styles.chipSection}>
+            <Text style={[styles.chipSectionTitle, { color: colors.textSecondary }]}>
+              Categories
+            </Text>
+            <View style={styles.chipRow}>
+              {game.categories.map((c) => (
+                <View
+                  key={c}
+                  style={[styles.chip, { backgroundColor: isDark ? "#2D2B3E" : "#F3E8FF" }]}
+                >
+                  <Text style={[styles.chipText, { color: isDark ? "#D6BCFA" : "#6B21A8" }]}>
+                    {c}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {game.mechanics?.length > 0 && (
+          <View style={styles.chipSection}>
+            <Text style={[styles.chipSectionTitle, { color: colors.textSecondary }]}>
+              Mechanics
+            </Text>
+            <View style={styles.chipRow}>
+              {game.mechanics.map((m) => (
+                <View
+                  key={m}
+                  style={[styles.chip, { backgroundColor: isDark ? "#1C3329" : "#ECFDF5" }]}
+                >
+                  <Text style={[styles.chipText, { color: isDark ? "#68D391" : "#065F46" }]}>
+                    {m}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {game.description && (
           <View style={styles.section}>
@@ -343,6 +390,20 @@ const styles = StyleSheet.create({
     color: "#2E7D32",
     fontWeight: "600",
   },
+  rankBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(184,134,11,0.12)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  rankText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#B8860B",
+  },
   meta: {
     fontSize: 15,
   },
@@ -356,18 +417,46 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "transparent",
   },
+  stat: {
+    alignItems: "center",
+    gap: 4,
+  },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    marginBottom: 4,
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
+  },
+  chipSection: {
+    marginBottom: 16,
+  },
+  chipSectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  chip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: "500",
   },
   section: {
     marginBottom: 24,
+    marginTop: 8,
   },
   sectionTitle: {
     fontSize: 14,
