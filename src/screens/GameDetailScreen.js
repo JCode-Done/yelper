@@ -5,8 +5,10 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
+  useWindowDimensions,
 } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "../context/ThemeContext";
 import { BOARDGAME_INDEX } from "../api/boardgames";
 import ImageLightbox from "../components/ImageLightbox";
@@ -93,6 +95,8 @@ const GameDetailScreen = ({ route, navigation }) => {
     );
   }
 
+  const { width: screenWidth } = useWindowDimensions();
+  const heroHeight = Math.round(screenWidth * 0.75);
   const playtime = formatPlaytime(game.minPlaytime, game.maxPlaytime);
   const players = formatPlayers(game.minPlayers, game.maxPlayers);
   const heroUri = gameHeroUri(game);
@@ -104,7 +108,7 @@ const GameDetailScreen = ({ route, navigation }) => {
       style={styles.container}
       contentContainerStyle={styles.content}
     >
-      <View style={[styles.heroContainer, { backgroundColor: colors.border }]}>
+      <View style={[styles.heroContainer, { height: heroHeight, backgroundColor: colors.border }]}>
         {heroUri ? (
           <Pressable
             onPress={() =>
@@ -121,8 +125,26 @@ const GameDetailScreen = ({ route, navigation }) => {
               style={styles.heroImage}
               contentFit="cover"
             />
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.7)"]}
+              style={styles.heroGradient}
+            >
+              <Text style={styles.heroTitle} numberOfLines={2}>
+                {game.name}
+              </Text>
+              {game.rating != null && (
+                <Text style={styles.heroRating}>★ {game.rating.toFixed(1)}</Text>
+              )}
+            </LinearGradient>
           </Pressable>
-        ) : null}
+        ) : (
+          <View style={styles.heroPlaceholder}>
+            <Ionicons name="game-controller-outline" size={48} color={colors.textSecondary} />
+            <Text style={[styles.heroPlaceholderText, { color: colors.textSecondary }]}>
+              {game.name}
+            </Text>
+          </View>
+        )}
       </View>
       {thumbs.length > 0 ? (
         <ScrollView
@@ -341,7 +363,6 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     width: "100%",
-    height: 240,
     overflow: "hidden",
   },
   heroPressable: {
@@ -349,8 +370,45 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   heroImage: {
+    ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
+  },
+  heroGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 60,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    justifyContent: "flex-end",
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#fff",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  heroRating: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#A5D6A7",
+    marginTop: 4,
+  },
+  heroPlaceholder: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    padding: 20,
+  },
+  heroPlaceholderText: {
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
   },
   viewsRow: {
     paddingHorizontal: 16,
