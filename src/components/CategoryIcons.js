@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 
@@ -32,7 +33,11 @@ const CategoryIcons = ({ onCategoryPress }) => {
       {CATEGORIES.map((cat, index) => (
         <Pressable
           key={cat.id}
-          onPress={() => onCategoryPress?.(cat)}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Warning
+            );
+            onCategoryPress?.(cat);
+          }}
           style={({ pressed }) => [
             styles.item,
             index < CATEGORIES.length - 1 && styles.itemGap,

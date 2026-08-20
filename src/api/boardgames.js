@@ -1,5 +1,9 @@
-const BGG_SEARCH_URL = "https://boardgamegeek.com/xmlapi2/search";
-const BGG_THING_URL = "https://boardgamegeek.com/xmlapi2/thing";
+import boardgameIndexData from "../data/boardgameIndex.json";
+
+const BGG_BASE_URL = "https://boardgamegeek.com/xmlapi2";
+const BGG_SEARCH_URL = `${BGG_BASE_URL}/search`;
+const BGG_THING_URL = `${BGG_BASE_URL}/thing`;
+const BGG_HOT_URL = `${BGG_BASE_URL}/hot`;
 
 const stripHtml = (html) =>
   (html || "")
@@ -33,8 +37,11 @@ const MOCK_GAMES = [
     name: "Ticket to Ride",
     tags: ["euro"],
     year: 2004,
-    image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
- imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg", rating: 7.4,
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",
+    imageLarge:
+      "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",
+    rating: 7.4,
     description:
       "Ticket to Ride is a cross-country train adventure. Collect train cards to claim railway routes connecting cities across North America.",
     minPlayers: 2,
@@ -49,8 +56,10 @@ const MOCK_GAMES = [
     name: "Carcassonne",
     tags: ["euro"],
     year: 2000,
-    image: "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",
-    imageLarge: "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",
+    image:
+      "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",
+    imageLarge:
+      "https://assetsio.gnwcdn.com/carcassone-layout-image-adobe-4-oliver-foerstner.png?width=690&quality=85&format=jpg&dpr=2&auto=webp",
     rating: 7.4,
     description:
       "Tile-placement game where players draw and place tiles to build the medieval landscape around Carcassonne.",
@@ -72,7 +81,7 @@ const MOCK_GAMES = [
       "https://upload.wikimedia.org/wikipedia/commons/7/70/Components_in_Wingspan_board_game.jpg",
     rating: 8.1,
     description:
-      "It is a medium-weight, card-driven, engine-building board game in which players compete to attract birds to their wildlife reserves. During the game's development process, Hargrave constructed personal charts of birds observed in Maryland, with statistics sourced from various biological databases; the special powers of birds were also selected to resemble real-life characteristics. It is a medium-weight, card-driven, engine-building board game in which players compete to attract birds to their wildlife reserves. During the game's development process, Hargrave constructed personal charts of birds observed in Maryland, with statistics sourced from various biological databases; the special powers of birds were also selected to resemble real-life characteristics.",
+      "Wingspan is a card-driven, engine-building board game where players compete to attract birds to their wildlife reserves. Collect food, lay eggs, and draw bird cards to build a thriving habitat.",
     minPlayers: 1,
     maxPlayers: 5,
     minPlaytime: 40,
@@ -85,8 +94,11 @@ const MOCK_GAMES = [
     name: "Gloomhaven",
     tags: ["resource management"],
     year: 2017,
- image: "https://theboardgameschronicle.com/wp-content/uploads/2021/07/40_00.jpg",   
- imageLarge: "https://theboardgameschronicle.com/wp-content/uploads/2021/07/40_00.jpg",    rating: 8.8,
+    image:
+      "https://theboardgameschronicle.com/wp-content/uploads/2021/07/40_00.jpg",
+    imageLarge:
+      "https://theboardgameschronicle.com/wp-content/uploads/2021/07/40_00.jpg",
+    rating: 8.8,
     description:
       "Gloomhaven is a cooperative dungeon-crawler with branching storylines, tactical combat, and evolving character classes.",
     minPlayers: 1,
@@ -101,8 +113,11 @@ const MOCK_GAMES = [
     name: "Azul",
     tags: ["abstract"],
     year: 2017,
- image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
- imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",    rating: 7.7,
+    image:
+      "https://upload.wikimedia.org/wikipedia/en/c/c0/Azul_board_game_cover.png",
+    imageLarge:
+      "https://upload.wikimedia.org/wikipedia/en/c/c0/Azul_board_game_cover.png",
+    rating: 7.7,
     description:
       "Azul is a tile-drafting game where players collect matching colored tiles to decorate the walls of the Royal Palace of Evora.",
     minPlayers: 2,
@@ -117,8 +132,11 @@ const MOCK_GAMES = [
     name: "Splendor",
     tags: ["strategy"],
     year: 2014,
- image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
- imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",    rating: 7.4,
+    image:
+      "https://upload.wikimedia.org/wikipedia/en/2/2e/Splendor_board_game_cover.jpg",
+    imageLarge:
+      "https://upload.wikimedia.org/wikipedia/en/2/2e/Splendor_board_game_cover.jpg",
+    rating: 7.4,
     description:
       "Splendor is a game of collecting gems and buying developments. Players compete to attract nobles and build the most prestigious jewelry business.",
     minPlayers: 2,
@@ -131,10 +149,13 @@ const MOCK_GAMES = [
   {
     id: "30549",
     name: "Pandemic",
-    tags: ["Cooperative"],
+    tags: ["cooperative"],
     year: 2008,
- image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
- imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",    rating: 7.6,
+    image:
+      "https://upload.wikimedia.org/wikipedia/en/2/21/Pandemic_board_game_cover.png",
+    imageLarge:
+      "https://upload.wikimedia.org/wikipedia/en/2/21/Pandemic_board_game_cover.png",
+    rating: 7.6,
     description:
       "Pandemic is a cooperative game where players work together to stop four diseases from spreading across the world. Cure all diseases before time runs out.",
     minPlayers: 2,
@@ -145,18 +166,24 @@ const MOCK_GAMES = [
     usersRated: 89100,
   },
   {
-    id: "174356",
-    name: "cars",
- image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",   
- imageLarge: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Ticket_to_Ride_Ghost_Train_-_IMG_20260201_180542.jpg",    rating: 4.8,
+    id: "68448",
+    name: "7 Wonders",
+    tags: ["strategy", "euro"],
+    year: 2010,
+    badge: "Card Drafting",
+    image:
+      "https://upload.wikimedia.org/wikipedia/en/2/21/7_Wonders_board_game_cover.jpg",
+    imageLarge:
+      "https://upload.wikimedia.org/wikipedia/en/2/21/7_Wonders_board_game_cover.jpg",
+    rating: 7.7,
     description:
-      "Gloomhaven is a cooperative dungeon-crawler with branching storylines, tactical combat, and evolving character classes.",
-    minPlayers: 1,
-    maxPlayers: 4,
-    minPlaytime: 60,
-    maxPlaytime: 120,
-    minAge: 14,
-    usersRated: 45200,
+      "7 Wonders is a card-drafting game where players develop ancient civilizations and build one of the seven wonders of the world across three ages.",
+    minPlayers: 2,
+    maxPlayers: 7,
+    minPlaytime: 30,
+    maxPlaytime: 30,
+    minAge: 10,
+    usersRated: 74500,
   },
 ];
 
@@ -180,9 +207,7 @@ const applyClientFilters = (games, filters, limit) => {
   }
   const minP = filters.minPlayers;
   if (minP != null && typeof minP === "number" && !Number.isNaN(minP)) {
-    out = out.filter(
-      (g) => g.maxPlayers != null && g.maxPlayers >= minP,
-    );
+    out = out.filter((g) => g.maxPlayers != null && g.maxPlayers >= minP);
   }
   const maxT = filters.maxPlaytime;
   if (maxT != null && typeof maxT === "number" && !Number.isNaN(maxT)) {
@@ -291,6 +316,59 @@ const fetchGameDetails = async (gameIds) => {
  * @returns {Promise<Object>} { games: [], error: string|null }
  */
 export { MOCK_GAMES };
+
+/** Ranked inventory compiled from recommend.games (BGG-derived). */
+export const BOARDGAME_INDEX = Array.isArray(boardgameIndexData.games)
+  ? boardgameIndexData.games
+  : [];
+
+const indexById = new Map(
+  BOARDGAME_INDEX.map((g) => [String(g.id), g]),
+);
+const indexByName = new Map(
+  BOARDGAME_INDEX.map((g) => [String(g.name || "").toLowerCase(), g]),
+);
+
+/** Overlay working BGG cover URLs from the local index. */
+export const withIndexImages = (game) => {
+  if (!game) return game;
+  const src =
+    (game.id != null ? indexById.get(String(game.id)) : null) ||
+    indexByName.get(String(game.name || "").toLowerCase());
+  if (!src) return game;
+  return {
+    ...game,
+    id: src.id || game.id,
+    image: src.image || game.image || null,
+    imageLarge: src.imageLarge || game.imageLarge || null,
+    imageViews:
+      Array.isArray(src.imageViews) && src.imageViews.length > 0
+        ? src.imageViews
+        : game.imageViews,
+  };
+};
+
+for (let i = 0; i < MOCK_GAMES.length; i += 1) {
+  MOCK_GAMES[i] = withIndexImages(MOCK_GAMES[i]);
+}
+
+const searchLocalIndex = (query, filters, limit) => {
+  const q = (query || "").trim().toLowerCase();
+  let games = BOARDGAME_INDEX;
+  if (q) {
+    games = games.filter(
+      (g) =>
+        (g.name && g.name.toLowerCase().includes(q)) ||
+        (Array.isArray(g.types) &&
+          g.types.some((t) => String(t).toLowerCase().includes(q))) ||
+        (Array.isArray(g.mechanics) &&
+          g.mechanics.some((t) => String(t).toLowerCase().includes(q))) ||
+        (Array.isArray(g.categories) &&
+          g.categories.some((t) => String(t).toLowerCase().includes(q))),
+    );
+  }
+  return applyClientFilters(games, filters, limit);
+};
 export const searchBoardGames = async ({
   term = "",
   tag,
@@ -301,27 +379,27 @@ export const searchBoardGames = async ({
 
   if (tag) {
     await delay(200);
-    let games = MOCK_GAMES.filter(
-      (g) => g.tags && Array.isArray(g.tags) && g.tags.includes(tag)
-    ).map((g) => ({ ...g }));
-    games = applyClientFilters(games, filters, limit);
+    const tagQuery = String(tag).replace(/-/g, " ");
+    let games = searchLocalIndex(tagQuery, filters, limit);
+    if (games.length === 0) {
+      games = MOCK_GAMES.filter(
+        (g) => g.tags && Array.isArray(g.tags) && g.tags.includes(tag),
+      ).map((g) => ({ ...g }));
+      games = applyClientFilters(games, filters, limit);
+    }
     return { games, error: null };
   }
 
   if (!query) {
     await delay(200);
-    let games = MOCK_GAMES.map((g) => ({ ...g }));
-    try {
-      const details = await fetchGameDetails(games.map((g) => g.id));
-      const detailMap = Object.fromEntries(details.map((d) => [d.id, d]));
-      games = games.map((g) => ({
-        ...g,
-        image: detailMap[g.id]?.image ?? g.image,
-        imageLarge: detailMap[g.id]?.imageLarge ?? null,
-      }));
-    } catch (_) {}
-    games = applyClientFilters(games, filters, limit);
+    const games = applyClientFilters(BOARDGAME_INDEX, filters, limit);
     return { games, error: null };
+  }
+
+  const localHits = searchLocalIndex(query, filters, limit);
+  if (localHits.length > 0) {
+    await delay(200);
+    return { games: localHits, error: null };
   }
 
   try {
@@ -353,28 +431,108 @@ export const searchBoardGames = async ({
       };
     });
 
-    games = applyClientFilters(games, filters, limit);
+    games = applyClientFilters(games, filters, limit).map(withIndexImages);
     return { games, error: null };
   } catch (error) {
-    console.warn("BGG API failed, using mock data:", error.message);
-    await delay(400);
-    const q = query.toLowerCase();
-    let games = MOCK_GAMES.filter(
-      (g) => !query || g.name.toLowerCase().includes(q),
-    )
-      .slice(0, limit)
-      .map((g) => ({ ...g }));
-
-    try {
-      const details = await fetchGameDetails(games.map((g) => g.id));
-      const detailMap = Object.fromEntries(details.map((d) => [d.id, d]));
-      games = games.map((g) => ({
-        ...g,
-        image: detailMap[g.id]?.image ?? g.image,
-        imageLarge: detailMap[g.id]?.imageLarge ?? null,
-      }));
-    } catch (_) {}
-    games = applyClientFilters(games, filters, limit);
+    console.warn("BGG API failed, using local index:", error.message);
+    await delay(200);
+    const games = searchLocalIndex(query, filters, limit);
     return { games, error: null };
   }
+};
+
+// ─── BGG Index: Hot list + top-ranked games ──────────────────────────
+
+const parseHotXml = (xml) => {
+  const items = [];
+  const regex =
+    /<item\s+id="(\d+)"[^>]*rank="(\d+)"[^>]*>[\s\S]*?<name[^>]*value="([^"]+)"[\s\S]*?(?:<thumbnail[^>]*value="([^"]*)")?[\s\S]*?(?:<yearpublished[^>]*value="(\d+)")?[\s\S]*?<\/item>/g;
+  let m;
+  while ((m = regex.exec(xml)) !== null) {
+    items.push({
+      id: m[1],
+      rank: parseInt(m[2], 10),
+      name: decode(m[3]),
+      image: m[4] || null,
+      year: m[5] ? parseInt(m[5], 10) : null,
+    });
+  }
+  return items;
+};
+
+/** Fetch the BGG "Hot" list (top 50 trending board games). */
+export const fetchBggHotList = async () => {
+  try {
+    const res = await fetch(`${BGG_HOT_URL}?type=boardgame`);
+    if (!res.ok) throw new Error(`Hot list failed: ${res.status}`);
+    const xml = await res.text();
+    return { games: parseHotXml(xml).map(withIndexImages), error: null };
+  } catch (e) {
+    console.warn("[boardgames] fetchBggHotList", e.message);
+    return { games: BOARDGAME_INDEX.slice(0, 50), error: e.message };
+  }
+};
+
+// Well-known BGG IDs for top-ranked board games (curated from BGG top 200).
+const TOP_GAME_IDS = [
+  174430, 161936, 224517, 233078, 342942, 291457, 187645, 12333, 120677, 169786,
+  182028, 167791, 193738, 173346, 220308, 284083, 316554, 246784, 312484,
+  324856, 366013, 295770, 157354, 205637, 226320, 164928, 237182, 247763,
+  256960, 285774, 162886, 171623, 84876, 102794, 251247, 239188, 180263, 312484,
+  215312, 205059, 28720, 31260, 35677, 37111, 36218, 2651, 3076, 822, 68448, 13,
+  9209, 9217, 30549, 148228, 178900, 266192, 173346, 222, 39856, 25613, 40834,
+  72125, 62219, 66356, 3955, 521, 50381, 54043, 70323, 73439, 110327, 121921,
+  124742, 132531, 155426, 163412, 170042, 175914, 184267, 192135, 199792,
+  205398, 209010, 220877, 233867, 244521, 256916, 264220, 271320, 276025,
+  281259, 295947, 302260, 312484, 317985, 324786, 329082, 341169,
+];
+
+const uniqueIds = (ids) => [...new Set(ids)];
+
+/**
+ * Return the compiled board-game index (name, date, players, types).
+ * Falls back to the local JSON inventory when the live BGG API is unavailable.
+ */
+export const fetchBggIndex = async (onProgress) => {
+  const local = BOARDGAME_INDEX;
+  onProgress?.(0, local.length || 1);
+
+  try {
+    const { games: hotGames } = await fetchBggHotList();
+    const hotIds = hotGames.map((g) => parseInt(g.id, 10)).filter(Boolean);
+    const allIds = uniqueIds([...hotIds, ...TOP_GAME_IDS]);
+    if (allIds.length === 0) {
+      onProgress?.(local.length, local.length || 1);
+      return { games: local, error: null };
+    }
+
+    const total = allIds.length;
+    let loaded = 0;
+    const allGames = [];
+    for (let i = 0; i < allIds.length; i += 20) {
+      const batch = allIds.slice(i, i + 20);
+      try {
+        const res = await fetch(
+          `${BGG_THING_URL}?id=${batch.join(",")}&type=boardgame&stats=1`,
+        );
+        if (res.ok) {
+          const xml = await res.text();
+          allGames.push(...parseThingXml(xml));
+        }
+      } catch (_) {}
+      loaded += batch.length;
+      onProgress?.(Math.min(loaded, total), total);
+      await delay(350);
+    }
+
+    if (allGames.length > 0) {
+      allGames.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      return { games: allGames.map(withIndexImages), error: null };
+    }
+  } catch (e) {
+    console.warn("[boardgames] fetchBggIndex", e.message);
+  }
+
+  onProgress?.(local.length, local.length || 1);
+  return { games: local, error: null };
 };

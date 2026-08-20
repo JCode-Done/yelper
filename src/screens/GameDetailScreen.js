@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,9 @@ import {
   Pressable,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { useTheme } from "../context/ThemeContext";
+import ImageLightbox from "../components/ImageLightbox";
+import GameImage, { gameHeroUri, gameSheetThumbs } from "../components/GameImage";
 
 const formatPlaytime = (min, max) => {
   if (min == null && max == null) return null;
@@ -25,6 +26,7 @@ const formatPlayers = (min, max) => {
 const GameDetailScreen = ({ route, navigation }) => {
   const { game } = route.params || {};
   const { colors, isDark } = useTheme();
+  const [lightbox, setLightbox] = useState(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -41,12 +43,12 @@ const GameDetailScreen = ({ route, navigation }) => {
           <Feather
             name="x"
             size={24}
-            color={isDark ? colors.textPrimary : "#1a1a1a"}
+            color={colors.textPrimary}
           />
         </Pressable>
       ),
     });
-  }, [game?.name, navigation]);
+  }, [game?.name, navigation, isDark, colors]);
 
   if (!game) {
     return (
@@ -70,24 +72,64 @@ const GameDetailScreen = ({ route, navigation }) => {
 
   const playtime = formatPlaytime(game.minPlaytime, game.maxPlaytime);
   const players = formatPlayers(game.minPlayers, game.maxPlayers);
+  const heroUri = gameHeroUri(game);
+  const thumbs = gameSheetThumbs(game);
 
   return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
     <ScrollView
-      style={[
-        styles.container,
-        { backgroundColor: colors.background },
-      ]}
+      style={styles.container}
       contentContainerStyle={styles.content}
     >
-      <View style={styles.heroContainer}>
-        {game.imageLarge || game.image ? (
-          <Image
-            source={{ uri: game.imageLarge || game.image }}
-            style={styles.heroImage}
-            contentFit="cover"
-          />
+      <View style={[styles.heroContainer, { backgroundColor: colors.border }]}>
+        {heroUri ? (
+          <Pressable
+            onPress={() =>
+              setLightbox({
+                url: heroUri,
+                caption: game.name,
+              })
+            }
+            style={styles.heroPressable}
+          >
+            <GameImage
+              uri={game.imageLarge}
+              fallbackUri={game.image}
+              style={styles.heroImage}
+              contentFit="cover"
+            />
+          </Pressable>
         ) : null}
       </View>
+      {thumbs.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.viewsRow}
+        >
+          {thumbs.map((view, index) => (
+            <Pressable
+              key={view.url || `view-${index}`}
+              onPress={() =>
+                setLightbox({
+                  url: view.url,
+                  caption: view.caption || game.name,
+                })
+              }
+              style={({ pressed }) => [
+                styles.viewImageWrap,
+                pressed && styles.viewImagePressed,
+              ]}
+            >
+              <GameImage
+                uri={view.url}
+                style={styles.viewImage}
+                contentFit="cover"
+              />
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : null}
       <View
         style={[
           styles.body,
@@ -129,7 +171,22 @@ const GameDetailScreen = ({ route, navigation }) => {
           )}
         </View>
 
-        <View style={styles.stats}>
+        {(game.players || game.types?.length) ? (
+          <Text
+            style={[
+              styles.meta,
+              { color: colors.textSecondary, marginBottom: 16 },
+            ]}
+          >
+            {game.players ? `${game.players} players` : null}
+            {game.players && game.types?.length ? " · " : null}
+            {(game.mechanics?.length ? game.mechanics : game.types)
+              ?.slice(0, 6)
+              .join(" · ")}
+          </Text>
+        ) : null}
+
+        <View style={[styles.stats, { borderColor: colors.border }]}>
           {players && (
             <View style={styles.stat}>
               <Text
@@ -215,6 +272,13 @@ const GameDetailScreen = ({ route, navigation }) => {
 
       </View>
     </ScrollView>
+      <ImageLightbox
+        visible={!!lightbox}
+        url={lightbox?.url}
+        caption={lightbox?.caption}
+        onClose={() => setLightbox(null)}
+      />
+    </View>
   );
 };
 
@@ -230,10 +294,34 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     width: "100%",
-    height: 220,
+    height: 240,
+    overflow: "hidden",
+  },
+  heroPressable: {
+    width: "100%",
+    height: "100%",
   },
   heroImage: {
-    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+  },
+  viewsRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  viewImage: {
+    width: 140,
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: "rgba(128,128,128,0.15)",
+  },
+  viewImageWrap: {
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  viewImagePressed: {
+    opacity: 0.8,
   },
   body: {
     padding: 20,
@@ -266,7 +354,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "transparent",
   },
   statLabel: {
     fontSize: 12,

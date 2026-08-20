@@ -12,17 +12,48 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
+import PasswordInput from '../components/PasswordInput';
 
 const SignUpScreen = () => {
   const navigation = useNavigation();
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState(null);
   const { colors } = useTheme();
 
-  const handleSignUp = () => {
-    navigation.replace('MainTabs');
+  const allFieldsFilled =
+    username.trim().length > 0 &&
+    email.trim().length > 0 &&
+    password.length >= 6 &&
+    confirmPassword.length > 0;
+
+  const handleNext = () => {
+    setError(null);
+    const trimmedUsername = username.trim();
+    const trimmedEmail = email.trim();
+    if (!trimmedUsername) {
+      setError('Enter a username.');
+      return;
+    }
+    if (!trimmedEmail) {
+      setError('Enter your email.');
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    navigation.navigate('Subscription', {
+      username: trimmedUsername,
+      email: trimmedEmail,
+      password,
+    });
   };
 
   return (
@@ -41,75 +72,96 @@ const SignUpScreen = () => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
-            <Text
-              style={[
-                styles.title,
-                { color: colors.textPrimary },
-              ]}
-            >
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
               Create Account
             </Text>
-            <Text
-              style={[
-                styles.subtitle,
-                { color: colors.textSecondary },
-              ]}
-            >
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Join GameTap to discover board games
             </Text>
 
             <TextInput
               style={[
-                styles.input,
-                { borderColor: colors.border, color: colors.textPrimary },
+                styles.textInput,
+                {
+                  borderColor: colors.border,
+                  color: colors.textPrimary,
+                  backgroundColor: colors.card,
+                },
               ]}
-              placeholder="Name"
+              placeholder="Username"
               placeholderTextColor={colors.textSecondary}
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-            />
-            <TextInput
-              style={[
-                styles.input,
-                { borderColor: colors.border, color: colors.textPrimary },
-              ]}
-              placeholder="Email"
-              placeholderTextColor={colors.textSecondary}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
+              value={username}
+              onChangeText={(t) => {
+                setError(null);
+                setUsername(t);
+              }}
               autoCapitalize="none"
               autoCorrect={false}
             />
             <TextInput
               style={[
-                styles.input,
-                { borderColor: colors.border, color: colors.textPrimary },
+                styles.textInput,
+                {
+                  borderColor: colors.border,
+                  color: colors.textPrimary,
+                  backgroundColor: colors.card,
+                },
               ]}
+              placeholder="Email"
+              placeholderTextColor={colors.textSecondary}
+              value={email}
+              onChangeText={(t) => {
+                setError(null);
+                setEmail(t);
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <PasswordInput
+              value={password}
+              onChangeText={(t) => {
+                setError(null);
+                setPassword(t);
+              }}
               placeholder="Password"
               placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
+              textColor={colors.textPrimary}
+              borderColor={colors.border}
+              backgroundColor={colors.card}
+              iconColor={colors.textSecondary}
+              style={styles.fieldSpacing}
             />
-            <TextInput
-              style={[
-                styles.input,
-                { borderColor: colors.border, color: colors.textPrimary },
-              ]}
+            <PasswordInput
+              value={confirmPassword}
+              onChangeText={(t) => {
+                setError(null);
+                setConfirmPassword(t);
+              }}
               placeholder="Confirm Password"
               placeholderTextColor={colors.textSecondary}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
+              textColor={colors.textPrimary}
+              borderColor={colors.border}
+              backgroundColor={colors.card}
+              iconColor={colors.textSecondary}
+              style={styles.fieldSpacing}
             />
 
+            {error ? (
+              <Text style={[styles.errorText, { color: '#B91C1C' }]}>{error}</Text>
+            ) : null}
+
             <Pressable
-              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-              onPress={handleSignUp}
+              style={({ pressed }) => [
+                styles.button,
+                { backgroundColor: colors.textPrimary },
+                pressed && allFieldsFilled && styles.buttonPressed,
+                !allFieldsFilled && styles.buttonDisabled,
+              ]}
+              onPress={handleNext}
+              disabled={!allFieldsFilled}
             >
-              <Text style={styles.buttonText}>Sign Up</Text>
+              <Text style={[styles.buttonText, { color: colors.background }]}>Next</Text>
             </Pressable>
 
             <Pressable
@@ -128,7 +180,6 @@ const SignUpScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   keyboardView: {
     flex: 1,
@@ -144,27 +195,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1a1a1a',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 32,
+    marginBottom: 24,
   },
-  input: {
+  textInput: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#1a1a1a',
-    backgroundColor: '#fff',
+    marginBottom: 16,
+  },
+  fieldSpacing: {
     marginBottom: 16,
   },
   button: {
-    backgroundColor: '#1a1a1a',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -173,10 +221,17 @@ const styles = StyleSheet.create({
   buttonPressed: {
     opacity: 0.9,
   },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  errorText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 12,
+  },
   buttonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
   },
   linkButton: {
     marginTop: 24,

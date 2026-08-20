@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FavoritesProvider } from './src/context/FavoritesContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ProfileProvider } from './src/context/ProfileContext';
+import { SubscriptionProvider } from './src/context/SubscriptionContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import HomeScreen from './src/tabs/HomeScreen';
 import FavoritesScreen from './src/tabs/FavoritesScreen';
@@ -104,6 +105,9 @@ function AppNavigator() {
               options={{
                 presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
                 headerShown: true,
+                sheetAllowedDetents: [0.7, 1],
+                sheetInitialDetentIndex: 1,
+                sheetGrabberVisible: true,
               }}
             />
             <Stack.Screen
@@ -112,6 +116,14 @@ function AppNavigator() {
               options={{
                 presentation: 'modal',
                 headerShown: true,
+              }}
+            />
+            <Stack.Screen
+              name="Subscription"
+              component={SubscriptionScreen}
+              options={{
+                presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
+                headerShown: false,
               }}
             />
           </>
@@ -159,11 +171,13 @@ export default function App() {
     <GestureHandlerRootView style={styles.container}>
       <ThemeProvider>
         <AuthProvider>
-          <FavoritesProvider>
-            <ProfileProvider>
-              <AppNavigator />
-            </ProfileProvider>
-          </FavoritesProvider>
+          <SubscriptionProvider>
+            <FavoritesProvider>
+              <ProfileProvider>
+                <AppNavigator />
+              </ProfileProvider>
+            </FavoritesProvider>
+          </SubscriptionProvider>
         </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

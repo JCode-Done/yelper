@@ -23,7 +23,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const BoardGamePollCreator = ({ onCreated, onCancel }) => {
   const { colors, isDark } = useTheme();
-  const { name, voterId } = useProfile();
+  const { username: name, uid } = useProfile();
   const [theme, setTheme] = useState('');
   const [items, setItems] = useState(() =>
     Array.from({ length: POLL_OPTION_COUNT }, () => ''),
@@ -65,7 +65,7 @@ const BoardGamePollCreator = ({ onCreated, onCancel }) => {
       theme,
       items,
       createdByName: name,
-      createdByVoterId: voterId || '',
+      createdByVoterId: uid || '',
       targetTotalVotes: cap,
     });
     setBusy(false);

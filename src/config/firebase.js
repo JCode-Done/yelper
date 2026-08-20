@@ -4,12 +4,15 @@
  * Set `EXPO_PUBLIC_FIREBASE_*` in a root `.env` (see `.env.example`). The same
  * values are mirrored to `expo-constants` `extra.firebase` via `app.config.js`.
  *
- * Realtime Database URL: `EXPO_PUBLIC_FIREBASE_DATABASE_URL` or optional
- * `EXPO_PUBLIC_GAMETAP_RTDB_URL` (Retrieve tab). Firestore: polls API.
+ * Auth: `getAuth(app)` — enable Email/Password in Firebase Console → Authentication.
+ * Realtime Database URL: `EXPO_PUBLIC_FIREBASE_DATABASE_URL` or
+ * `EXPO_PUBLIC_GAMETAP_RTDB_URL`. Firestore: polls API.
  */
 import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeAuth, getAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
@@ -64,11 +67,26 @@ function initFirestore(app) {
 }
 
 let app;
+let auth;
 let db;
 let rtdb;
 
+function initAuth(firebaseApp) {
+  if (Platform.OS === 'web') {
+    return getAuth(firebaseApp);
+  }
+  try {
+    return initializeAuth(firebaseApp, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  } catch {
+    return getAuth(firebaseApp);
+  }
+}
+
 if (hasMinimumConfig()) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  auth = initAuth(app);
   db = initFirestore(app);
   if (firebaseConfig.databaseURL) {
     rtdb = getDatabase(app);
@@ -79,4 +97,4 @@ if (hasMinimumConfig()) {
   );
 }
 
-export { app, db, rtdb, firebaseConfig, hasMinimumConfig };
+export { app, auth, db, rtdb, firebaseConfig, hasMinimumConfig };

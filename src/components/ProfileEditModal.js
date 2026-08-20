@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +26,7 @@ const ProfileEditModal = ({
   onSave,
   initialName = '',
   initialTitle = '',
+  initialBio = '',
   avatarUri,
   onAvatarChange,
   title: modalTitle = 'Edit Profile',
@@ -32,18 +34,28 @@ const ProfileEditModal = ({
   const { height } = useWindowDimensions();
   const [name, setName] = useState(initialName);
   const [title, setTitle] = useState(initialTitle);
+  const [bio, setBio] = useState(initialBio);
+  const [saving, setSaving] = useState(false);
   const { colors } = useTheme();
 
   useEffect(() => {
     if (visible) {
       setName(initialName);
       setTitle(initialTitle);
+      setBio(initialBio);
+      setSaving(false);
     }
-  }, [visible, initialName, initialTitle]);
+  }, [visible, initialName, initialTitle, initialBio]);
 
-  const handleSave = () => {
-    onSave?.({ name, title });
-    onCancel?.();
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSave?.({ name, title, bio });
+      onCancel?.();
+    } catch (err) {
+      setSaving(false);
+      Alert.alert('Save failed', err?.message || 'Could not save your profile. Please try again.');
+    }
   };
 
   const takePhoto = async () => {
@@ -94,7 +106,7 @@ const ProfileEditModal = ({
     }
   };
 
-  const sheetHeight = Math.round(height * 0.55);
+  const sheetHeight = Math.round(height * 0.7);
 
   return (
     <Modal
@@ -178,7 +190,7 @@ const ProfileEditModal = ({
                 { color: colors.textSecondary },
               ]}
             >
-              Name
+              Username
             </Text>
             <TextInput
               style={[
@@ -191,8 +203,10 @@ const ProfileEditModal = ({
               ]}
               value={name}
               onChangeText={setName}
-              placeholder="Your name"
+              placeholder="Your username"
               placeholderTextColor={colors.textSecondary}
+              autoCapitalize="none"
+              autoCorrect={false}
             />
 
             <Text
@@ -218,11 +232,46 @@ const ProfileEditModal = ({
               placeholderTextColor={colors.textSecondary}
             />
 
-            <Pressable
-              style={({ pressed }) => [styles.updateButton, pressed && styles.updateButtonPressed]}
-              onPress={handleSave}
+            <Text
+              style={[
+                styles.inputLabel,
+                { color: colors.textSecondary },
+              ]}
             >
-              <Text style={styles.updateButtonText}>Update</Text>
+              About
+            </Text>
+            <TextInput
+              style={[
+                styles.input,
+                styles.bioInput,
+                {
+                  backgroundColor: colors.surface,
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                },
+              ]}
+              value={bio}
+              onChangeText={setBio}
+              placeholder="Tell others about yourself..."
+              placeholderTextColor={colors.textSecondary}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.updateButton,
+                pressed && styles.updateButtonPressed,
+                saving && styles.updateButtonDisabled,
+              ]}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.updateButtonText}>Update</Text>
+              )}
             </Pressable>
           </ScrollView>
         </Pressable>
@@ -333,6 +382,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
   },
+  bioInput: {
+    minHeight: 100,
+    paddingTop: 12,
+  },
   updateButton: {
     backgroundColor: '#000',
     borderRadius: 10,
@@ -342,6 +395,9 @@ const styles = StyleSheet.create({
   },
   updateButtonPressed: {
     opacity: 0.9,
+  },
+  updateButtonDisabled: {
+    opacity: 0.7,
   },
   updateButtonText: {
     fontSize: 16,

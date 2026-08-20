@@ -24,7 +24,7 @@ const PollDetailScreen = () => {
   const route = useRoute();
   const pollId = route.params?.pollId;
   const { colors, isDark } = useTheme();
-  const { name, voterId } = useProfile();
+  const { username: name, uid } = useProfile();
   const [poll, setPoll] = useState(null);
   const [events, setEvents] = useState([]);
   const [votingIndex, setVotingIndex] = useState(null);
@@ -44,7 +44,7 @@ const PollDetailScreen = () => {
       if (!pollId || !poll || poll.completedAt) return;
       setVotingIndex(optionIndex);
       const { ok, error } = await castVote(pollId, optionIndex, {
-        voterId: voterId || '',
+        voterId: uid || '',
         voterName: name || 'Guest',
       });
       setVotingIndex(null);
@@ -52,7 +52,7 @@ const PollDetailScreen = () => {
         Alert.alert('Vote not counted', error);
       }
     },
-    [pollId, poll, voterId, name],
+    [pollId, poll, uid, name],
   );
 
   if (!pollId) {
@@ -99,12 +99,12 @@ const PollDetailScreen = () => {
         isDark={isDark}
         votingIndex={votingIndex}
         onVote={onVote}
-        disabled={!voterId}
+        disabled={!uid}
       />
 
-      {!voterId ? (
+      {!uid ? (
         <Text style={[styles.warn, { color: colors.textSecondary }]}>
-          Preparing your voter id…
+          Signing in…
         </Text>
       ) : null}
 

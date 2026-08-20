@@ -1,6 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { Image } from "expo-image";
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,9 +10,16 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { MOCK_GAMES, searchBoardGames } from "../api/boardgames";
+import {
+  MOCK_GAMES,
+  BOARDGAME_INDEX,
+  searchBoardGames,
+  fetchBggHotList,
+  fetchBggIndex,
+} from "../api/boardgames";
 import FeaturedHorizontalScroll from "../components/FeaturedHorizontalScroll";
 import HorizontalThumbnails from "../components/HorizontalThumbnails";
+import GameImage, { gameThumbUri } from "../components/GameImage";
 import SearchBar from "../components/SearchBar";
 import AddCustomFilter from "../components/AddCustomFilter";
 import ThemeToggle from "../components/ThemeToggle";
@@ -37,7 +43,33 @@ const HomeScreen = () => {
   const [customFilters, setCustomFilters] = useState(null);
   const [activeTag, setActiveTag] = useState(null);
   const debounceRef = useRef(null);
-  const { avatar, name: profileName } = useProfile();
+  const { avatar, username: profileName } = useProfile();
+  const [hotGames, setHotGames] = useState([]);
+  const [indexGames, setIndexGames] = useState([]);
+  const [indexLoading, setIndexLoading] = useState(false);
+  const [indexProgress, setIndexProgress] = useState(null);
+  const [indexLoaded, setIndexLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchBggHotList().then(({ games }) => {
+      if (!cancelled && games.length > 0) setHotGames(games);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const loadFullIndex = useCallback(async () => {
+    if (indexLoading || indexLoaded) return;
+    setIndexLoading(true);
+    setIndexProgress({ loaded: 0, total: 1 });
+    const { games } = await fetchBggIndex((loaded, total) => {
+      setIndexProgress({ loaded, total });
+    });
+    setIndexGames(games);
+    setIndexLoaded(true);
+    setIndexLoading(false);
+    setIndexProgress(null);
+  }, [indexLoading, indexLoaded]);
 
   const runSearch = useCallback(
     async (term, additive = false, tag = null, filtersOverride) => {
@@ -120,21 +152,18 @@ const HomeScreen = () => {
           onPress={() => navigation.navigate("GameDetail", { game: item })}
         >
           <View style={styles.thumbnailWrapper}>
-            {item.image ? (
-              <Image
-                source={{ uri: item.image }}
-                style={styles.thumbnail}
-                contentFit="cover"
-              />
-            ) : (
-              <View style={styles.thumbnail} />
-            )}
+            <GameImage
+              uri={gameThumbUri(item)}
+              fallbackUri={item.imageLarge}
+              style={styles.thumbnail}
+              contentFit="cover"
+            />
           </View>
           <View style={styles.resultContent}>
-            <Text style={styles.resultName} numberOfLines={1}>
+            <Text style={[styles.resultName, { color: colors.textPrimary }]} numberOfLines={1}>
               {item.name}
             </Text>
-            <Text style={styles.resultMeta}>
+            <Text style={[styles.resultMeta, { color: colors.textSecondary }]}>
               {item.rating != null && (
                 <Text style={styles.ratingText}>★ {item.rating.toFixed(1)}</Text>
               )}
@@ -188,8 +217,8 @@ const HomeScreen = () => {
           onPress={() => navigation.navigate("Profile")}
         >
           {avatar ? (
-            <Image
-              source={{ uri: avatar }}
+            <GameImage
+              uri={avatar}
               style={styles.headerAvatar}
               contentFit="cover"
             />
@@ -239,7 +268,7 @@ const HomeScreen = () => {
         ListHeaderComponent={
           loading ? (
             <View style={styles.loading}>
-              <ActivityIndicator size="large" color="#000" />
+              <ActivityIndicator size="large" color={colors.textPrimary} />
             </View>
           ) : error ? (
             <View style={styles.errorContainer}>
@@ -250,7 +279,7 @@ const HomeScreen = () => {
         ListFooterComponent={
           <>
             <FeaturedHorizontalScroll
-              items={MOCK_GAMES}
+              items={BOARDGAME_INDEX.slice(0, 12)}
               title="Featured Games"
               onItemPress={(game) => navigation.navigate("GameDetail", { game })}
             />
@@ -261,23 +290,72 @@ const HomeScreen = () => {
                   { color: colors.textPrimary },
                 ]}
               >
-                Hotness
+                BGG Hotness
               </Text>
               <HorizontalThumbnails
                 thumbnailSize={thumbnailSize}
-                items={MOCK_GAMES.filter(
-                  (g) => g.id && (g.image || g.imageLarge),
-                ).map((g) => ({
-                  id: g.id,
-                  image: g.image || g.imageLarge,
-                  label: g.name,
-                }))}
+                items={(hotGames.length > 0 ? hotGames : BOARDGAME_INDEX)
+                  .filter((g) => g.id && gameThumbUri(g))
+                  .slice(0, 50)
+                  .map((g) => ({
+                    id: g.id,
+                    image: gameThumbUri(g),
+                    imageLarge: g.imageLarge,
+                    label: g.name,
+                  }))}
                 onThumbnailPress={(item) => {
-                  const game = MOCK_GAMES.find((m) => m.id === item.id);
+                  const game =
+                    hotGames.find((g) => g.id === item.id) ||
+                    BOARDGAME_INDEX.find((m) => m.id === item.id) ||
+                    MOCK_GAMES.find((m) => m.id === item.id);
                   if (game) navigation.navigate("GameDetail", { game });
                 }}
               />
             </View>
+
+            {!indexLoaded && !indexLoading && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.browseButton,
+                  { backgroundColor: isDark ? "#E5E7EB" : "#111827" },
+                  pressed && { opacity: 0.85 },
+                ]}
+                onPress={loadFullIndex}
+              >
+                <Ionicons
+                  name="globe-outline"
+                  size={18}
+                  color={isDark ? "#111827" : "#fff"}
+                  style={{ marginRight: 8 }}
+                />
+                <Text
+                  style={[
+                    styles.browseButtonText,
+                    { color: isDark ? "#111827" : "#fff" },
+                  ]}
+                >
+                  Browse All BGG Games
+                </Text>
+              </Pressable>
+            )}
+
+            {indexLoading && indexProgress && (
+              <View style={styles.indexLoadingContainer}>
+                <ActivityIndicator size="small" color={colors.textPrimary} />
+                <Text style={[styles.indexLoadingText, { color: colors.textSecondary }]}>
+                  Loading BGG index… {indexProgress.loaded}/{indexProgress.total}
+                </Text>
+              </View>
+            )}
+
+            {indexLoaded && indexGames.length > 0 && (
+              <View style={styles.indexSection}>
+                <Text style={[styles.hotnessTitle, { color: colors.textPrimary }]}>
+                  BGG Top Games ({indexGames.length})
+                </Text>
+                {indexGames.map((game) => renderItem({ item: game }))}
+              </View>
+            )}
           </>
         }
       />
@@ -312,7 +390,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "rgba(128,128,128,0.2)",
   },
   profileName: {
     fontSize: 12,
@@ -328,7 +406,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#000",
+    backgroundColor: "#2E7D32",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -386,13 +464,13 @@ const styles = StyleSheet.create({
     right: 4,
   },
   resultItemPressed: {
-    backgroundColor: "#F3F4F6",
+    opacity: 0.7,
   },
   thumbnail: {
     width: 60,
     height: 60,
     borderRadius: 6,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "rgba(128,128,128,0.15)",
   },
   resultContent: {
     flex: 1,
@@ -401,16 +479,42 @@ const styles = StyleSheet.create({
   resultName: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1a1a1a",
   },
   resultMeta: {
     fontSize: 14,
-    color: "#6B7280",
     marginTop: 4,
   },
   ratingText: {
     color: "#2E7D32",
     fontWeight: "600",
+  },
+  browseButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 15,
+    marginTop: 16,
+    marginBottom: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  browseButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  indexLoadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+    gap: 10,
+  },
+  indexLoadingText: {
+    fontSize: 14,
+  },
+  indexSection: {
+    paddingTop: 12,
+    paddingBottom: 20,
   },
 });
 

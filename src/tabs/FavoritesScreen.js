@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Image } from 'expo-image';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFavorites } from '../context/FavoritesContext';
 import { useTheme } from '../context/ThemeContext';
+import GameImage, { gameThumbUri } from '../components/GameImage';
 
 const FavoritesScreen = () => {
   const navigation = useNavigation();
@@ -29,15 +29,12 @@ const FavoritesScreen = () => {
           onPress={() => navigation.navigate('GameDetail', { game: item })}
         >
           <View style={styles.thumbnailWrapper}>
-            {item.image ? (
-              <Image
-                source={{ uri: item.image }}
-                style={styles.thumbnail}
-                contentFit="cover"
-              />
-            ) : (
-              <View style={styles.thumbnail} />
-            )}
+            <GameImage
+              uri={gameThumbUri(item)}
+              fallbackUri={item.imageLarge}
+              style={styles.thumbnail}
+              contentFit="cover"
+            />
             <Pressable
               style={styles.heartButton}
               onPress={() => toggleFavorite(item)}

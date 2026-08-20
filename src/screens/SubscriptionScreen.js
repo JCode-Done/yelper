@@ -1,85 +1,163 @@
-import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { httpsCallable } from "firebase/functions";
+import { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Linking,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../context/AuthContext";
+import { useSubscription } from "../context/SubscriptionContext";
+import { useTheme } from "../context/ThemeContext";
+import { loadStripe } from "../utils/loadStripe";
 
-const CARD_TYPES = [
-  { label: 'Visa', icon: 'cc-visa' },
-  { label: 'Mastercard', icon: 'cc-mastercard' },
-  { label: 'Amex', icon: 'cc-amex' },
-  { label: 'Discover', icon: 'cc-discover' },
-];
+let functions;
+try {
+  const { getFunctions } = require("firebase/functions");
+  const { app } = require("../config/firebase");
+  if (app) functions = getFunctions(app);
+} catch {
+  // Functions not available (e.g. Firebase not configured)
+}
 
-const formatCardNumber = (raw) => {
-  const digits = raw.replace(/\D/g, '').slice(0, 16);
-  return digits.replace(/(.{4})/g, '$1 ').trim();
-};
-
-const formatExpiry = (raw) => {
-  const digits = raw.replace(/\D/g, '').slice(0, 4);
-  if (digits.length <= 2) return digits;
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-};
+const STRIPE_PK = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 
 const SubscriptionScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { username, email, password } = route.params;
-
-  const [nameOnCard, setNameOnCard] = useState('Jane Doe');
-  const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242');
-  const [cardType, setCardType] = useState('Visa');
-  const [cvv, setCvv] = useState('123');
-  const [expiry, setExpiry] = useState('12/29');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-
+  const { username, email, password } = route.params || {};
   const { colors } = useTheme();
   const { signUp } = useAuth();
+  const { offerings, purchaseSubscription, restorePurchases } =
+    useSubscription();
 
+  const [busy, setBusy] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedPkg, setSelectedPkg] = useState(null);
 
-  const handleSubscribe = async () => {
+  const packages = offerings?.availablePackages || [];
+
+  const handleMobileSubscribe = async () => {
     setError(null);
     setBusy(true);
     try {
-      await signUp(email, password, username);
+      if (email && password) {
+        await signUp(email, password, username);
+      }
+
+      const pkg = selectedPkg || packages[0];
+      if (!pkg) {
+        setError("No subscription packages available. Please try again later.");
+        setBusy(false);
+        return;
+      }
+
+      await purchaseSubscription(pkg);
     } catch (e) {
+      if (e.userCancelled) {
+        setBusy(false);
+        return;
+      }
       const msg =
-        e.code === 'auth/email-already-in-use'
-          ? 'An account with this email already exists.'
-          : e.code === 'auth/invalid-email'
-            ? 'Please enter a valid email address.'
-            : e.code === 'auth/weak-password'
-              ? 'Password is too weak — use at least 6 characters.'
+        e.code === "auth/email-already-in-use"
+          ? "An account with this email already exists."
+          : e.code === "auth/invalid-email"
+            ? "Please enter a valid email address."
+            : e.code === "auth/weak-password"
+              ? "Password is too weak — use at least 6 characters."
               : e.message;
       setError(msg);
-      setBusy(false);
-      return;
     }
     setBusy(false);
+  };
+
+  const handleWebSubscribe = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      if (email && password) {
+        await signUp(email, password, username);
+      }
+
+      if (!functions) {
+        setError("Payment service is not configured.");
+        setBusy(false);
+        return;
+      }
+
+      const createCheckoutSession = httpsCallable(
+        functions,
+        "createCheckoutSession",
+      );
+      const { data } = await createCheckoutSession();
+
+      if (data?.url) {
+        if (Platform.OS === "web" && loadStripe && STRIPE_PK) {
+          window.location.href = data.url;
+        } else {
+          await Linking.openURL(data.url);
+        }
+      } else {
+        setError("Could not create checkout session.");
+      }
+    } catch (e) {
+      const msg =
+        e.code === "auth/email-already-in-use"
+          ? "An account with this email already exists."
+          : e.message;
+      setError(msg);
+    }
+    setBusy(false);
+  };
+
+  const handleSubscribe =
+    Platform.OS === "web" ? handleWebSubscribe : handleMobileSubscribe;
+
+  const handleRestore = async () => {
+    setRestoring(true);
+    setError(null);
+    try {
+      const restored = await restorePurchases();
+      if (!restored) {
+        setError("No previous subscription found.");
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+    setRestoring(false);
+  };
+
+  const formatPrice = (pkg) => {
+    if (!pkg?.product) return "";
+    const { priceString, subscriptionPeriod } = pkg.product;
+    const periodLabel =
+      subscriptionPeriod === "P1M"
+        ? "/month"
+        : subscriptionPeriod === "P1Y"
+          ? "/year"
+          : subscriptionPeriod === "P1W"
+            ? "/week"
+            : "";
+    return `${priceString}${periodLabel}`;
   };
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['top', 'left', 'right', 'bottom']}
+      edges={["top", "left", "right", "bottom"]}
     >
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -88,159 +166,119 @@ const SubscriptionScreen = () => {
         >
           <View style={styles.content}>
             <Pressable
-              style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.6 }]}
+              style={({ pressed }) => [
+                styles.backButton,
+                pressed && { opacity: 0.6 },
+              ]}
               onPress={() => navigation.goBack()}
             >
-              <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={colors.textPrimary}
+              />
             </Pressable>
 
             <Text style={[styles.title, { color: colors.textPrimary }]}>
-              Subscription
+              Go Premium
             </Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Enter your payment details to subscribe
+              Unlock all features with a subscription
             </Text>
 
-            <Text style={[styles.label, { color: colors.textPrimary }]}>
-              Name on Card
-            </Text>
-            <TextInput
+            <View
               style={[
-                styles.textInput,
-                {
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                  backgroundColor: colors.card,
-                },
+                styles.featureCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
               ]}
-              placeholder="John Doe"
-              placeholderTextColor={colors.textSecondary}
-              value={nameOnCard}
-              onChangeText={(t) => {
-                setError(null);
-                setNameOnCard(t);
-              }}
-              autoCapitalize="words"
-              autoCorrect={false}
-            />
-
-            <Text style={[styles.label, { color: colors.textPrimary }]}>
-              Card Number
-            </Text>
-            <TextInput
-              style={[
-                styles.textInput,
-                {
-                  borderColor: colors.border,
-                  color: colors.textPrimary,
-                  backgroundColor: colors.card,
-                },
-              ]}
-              placeholder="1234 5678 9012 3456"
-              placeholderTextColor={colors.textSecondary}
-              value={cardNumber}
-              onChangeText={(t) => {
-                setError(null);
-                setCardNumber(formatCardNumber(t));
-              }}
-              keyboardType="number-pad"
-              maxLength={19}
-            />
-
-            <Text style={[styles.label, { color: colors.textPrimary }]}>
-              Card Type
-            </Text>
-            <View style={styles.cardTypeRow}>
-              {CARD_TYPES.map(({ label, icon }) => {
-                const selected = cardType === label;
-                return (
-                  <Pressable
-                    key={label}
-                    style={[
-                      styles.cardTypeChip,
-                      {
-                        borderColor: selected ? '#3B82F6' : colors.border,
-                        backgroundColor: selected ? '#3B82F6' : colors.card,
-                      },
-                    ]}
-                    onPress={() => {
-                      setError(null);
-                      setCardType(label);
-                    }}
+            >
+              {[
+                "Ad-free experience",
+                "Unlimited polls",
+                "Premium game data",
+                "Priority support",
+              ].map((feature) => (
+                <View key={feature} style={styles.featureRow}>
+                  <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
+                  <Text
+                    style={[styles.featureText, { color: colors.textPrimary }]}
                   >
-                    <FontAwesome5
-                      name={icon}
-                      size={18}
-                      color={selected ? '#fff' : colors.textPrimary}
-                    />
-                    <Text
+                    {feature}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            {Platform.OS !== "web" && packages.length > 0 && (
+              <View style={styles.packagesContainer}>
+                {packages.map((pkg) => {
+                  const isSelected =
+                    selectedPkg?.identifier === pkg.identifier ||
+                    (!selectedPkg && pkg === packages[0]);
+                  return (
+                    <Pressable
+                      key={pkg.identifier}
                       style={[
-                        styles.cardTypeText,
-                        { color: selected ? '#fff' : colors.textPrimary },
+                        styles.packageCard,
+                        {
+                          borderColor: isSelected ? "#3B82F6" : colors.border,
+                          backgroundColor: isSelected
+                            ? "#3B82F610"
+                            : colors.card,
+                        },
                       ]}
+                      onPress={() => setSelectedPkg(pkg)}
                     >
-                      {label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View style={styles.row}>
-              <View style={styles.halfField}>
-                <Text style={[styles.label, { color: colors.textPrimary }]}>
-                  Expiration
-                </Text>
-                <TextInput
-                  style={[
-                    styles.textInput,
-                    {
-                      borderColor: colors.border,
-                      color: colors.textPrimary,
-                      backgroundColor: colors.card,
-                    },
-                  ]}
-                  placeholder="MM/YY"
-                  placeholderTextColor={colors.textSecondary}
-                  value={expiry}
-                  onChangeText={(t) => {
-                    setError(null);
-                    setExpiry(formatExpiry(t));
-                  }}
-                  keyboardType="number-pad"
-                  maxLength={5}
-                />
+                      <Text
+                        style={[
+                          styles.packageTitle,
+                          { color: colors.textPrimary },
+                        ]}
+                      >
+                        {pkg.packageType === "MONTHLY"
+                          ? "Monthly"
+                          : pkg.packageType === "ANNUAL"
+                            ? "Annual"
+                            : pkg.product?.title || pkg.identifier}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.packagePrice,
+                          { color: colors.textPrimary },
+                        ]}
+                      >
+                        {formatPrice(pkg)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
-              <View style={styles.halfField}>
-                <Text style={[styles.label, { color: colors.textPrimary }]}>
-                  CVV
-                </Text>
-                <TextInput
-                  style={[
-                    styles.textInput,
-                    {
-                      borderColor: colors.border,
-                      color: colors.textPrimary,
-                      backgroundColor: colors.card,
-                    },
-                  ]}
-                  placeholder="123"
-                  placeholderTextColor={colors.textSecondary}
-                  value={cvv}
-                  onChangeText={(t) => {
-                    setError(null);
-                    setCvv(t.replace(/\D/g, '').slice(0, 3));
-                  }}
-                  keyboardType="number-pad"
-                  maxLength={3}
-                  secureTextEntry
-                />
-              </View>
-            </View>
+            )}
 
-            {error ? (
-              <Text style={[styles.errorText, { color: '#B91C1C' }]}>{error}</Text>
-            ) : null}
+            {Platform.OS === "web" && (
+              <View
+                style={[
+                  styles.webPriceCard,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.webPriceLabel,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  Premium Subscription
+                </Text>
+                <Text
+                  style={[styles.webPriceNote, { color: colors.textSecondary }]}
+                >
+                  You&apos;ll be redirected to our secure checkout
+                </Text>
+              </View>
+            )}
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
             <Pressable
               style={({ pressed }) => [
@@ -253,9 +291,45 @@ const SubscriptionScreen = () => {
               {busy ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Subscribe & Sign Up</Text>
+                <Text style={styles.buttonText}>
+                  {email ? "Subscribe & Sign Up" : "Subscribe Now"}
+                </Text>
               )}
             </Pressable>
+
+            {Platform.OS !== "web" && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.restoreButton,
+                  pressed && { opacity: 0.6 },
+                ]}
+                onPress={handleRestore}
+                disabled={restoring}
+              >
+                {restoring ? (
+                  <ActivityIndicator
+                    color={colors.textSecondary}
+                    size="small"
+                  />
+                ) : (
+                  <Text
+                    style={[
+                      styles.restoreText,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    Restore Purchases
+                  </Text>
+                )}
+              </Pressable>
+            )}
+
+            <Text style={[styles.legalText, { color: colors.textSecondary }]}>
+              {Platform.OS === "web"
+                ? "Subscriptions are managed through Stripe. Cancel anytime from your account settings."
+                : "Payment will be charged to your App Store or Google Play account. " +
+                  "Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period."}
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -280,75 +354,103 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginBottom: 12,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 24,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  textInput: {
+  featureCard: {
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    marginBottom: 16,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    gap: 14,
   },
-  cardTypeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 16,
-  },
-  cardTypeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1.5,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  cardTypeText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  row: {
-    flexDirection: 'row',
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
-  halfField: {
-    flex: 1,
+  featureText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  packagesContainer: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  packageCard: {
+    borderWidth: 2,
+    borderRadius: 14,
+    padding: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  packageTitle: {
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  packagePrice: {
+    fontSize: 17,
+    fontWeight: "700",
+  },
+  webPriceCard: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 20,
+    marginBottom: 24,
+    alignItems: "center",
+    gap: 6,
+  },
+  webPriceLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  webPriceNote: {
+    fontSize: 14,
+  },
+  errorText: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 12,
+    color: "#B91C1C",
   },
   button: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     paddingVertical: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   buttonPressed: {
     opacity: 0.9,
   },
-  errorText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 12,
-  },
   buttonText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
+  },
+  restoreButton: {
+    alignItems: "center",
+    paddingVertical: 14,
+    marginTop: 4,
+  },
+  restoreText: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  legalText: {
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+    marginTop: 16,
   },
 });
 

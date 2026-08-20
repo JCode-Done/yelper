@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useState, useMemo } from 'react';
 import { lightColors } from '../styles/lightTheme';
 import { darkColors } from '../styles/darkTheme';
 
@@ -7,7 +7,7 @@ const ThemeContext = createContext(null);
 export const ThemeProvider = ({ children }) => {
   const [isDark, setIsDark] = useState(false);
 
-  const toggleTheme = () => setIsDark((prev) => !prev);
+  const toggleTheme = useCallback(() => setIsDark((prev) => !prev), []);
 
   const value = useMemo(
     () => ({
@@ -15,7 +15,7 @@ export const ThemeProvider = ({ children }) => {
       toggleTheme,
       colors: isDark ? darkColors : lightColors,
     }),
-    [isDark]
+    [isDark, toggleTheme]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

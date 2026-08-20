@@ -2,12 +2,14 @@ import {
   addDoc,
   collection,
   doc,
+  getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
   runTransaction,
   serverTimestamp,
+  where,
 } from 'firebase/firestore';
 import { db, hasMinimumConfig } from '../config/firebase';
 
@@ -290,6 +292,18 @@ export async function castVote(pollId, optionIndex, { voterId, voterName }) {
   if (isPollsCloudEnabled()) {
     const pollRef = doc(db, 'polls', pollId);
     try {
+      if (voterId) {
+        const dupeQuery = query(
+          collection(db, 'polls', pollId, 'events'),
+          where('voterId', '==', voterId),
+          limit(1),
+        );
+        const dupeSnap = await getDocs(dupeQuery);
+        if (!dupeSnap.empty) {
+          return { ok: false, error: 'You have already voted on this poll.' };
+        }
+      }
+
       await runTransaction(db, async (transaction) => {
         const snap = await transaction.get(pollRef);
         if (!snap.exists()) throw new Error('Poll not found.');
@@ -334,6 +348,9 @@ export async function castVote(pollId, optionIndex, { voterId, voterName }) {
   const pollItems = Array.isArray(raw.items) ? raw.items : [];
   if (!((pollItems[optionIndex] || '').trim())) {
     return { ok: false, error: 'Invalid choice.' };
+  }
+  if (voterId && raw.recentEvents?.some((e) => e.voterId === voterId)) {
+    return { ok: false, error: 'You have already voted on this poll.' };
   }
 
   const vc = countsObjectToArray(raw.voteCounts);

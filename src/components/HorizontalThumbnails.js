@@ -1,4 +1,4 @@
-import { Image } from "expo-image";
+import GameImage from "./GameImage";
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../context/ThemeContext";
@@ -40,8 +40,9 @@ const HorizontalThumbnails = ({
           disabled={!onThumbnailPress}
         >
           {item.image ? (
-            <Image
-              source={{ uri: item.image }}
+            <GameImage
+              uri={item.image}
+              fallbackUri={item.imageLarge}
               style={[
                 styles.thumbnail,
                 { width: thumbnailSize, height: thumbnailSize },

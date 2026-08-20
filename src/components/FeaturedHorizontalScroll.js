@@ -1,7 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native';
-import { Image } from 'expo-image';
-import { useTheme } from '../context/ThemeContext';
+import GameImage, { gameThumbUri } from "./GameImage";
+import {
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    useWindowDimensions,
+    View,
+} from "react-native";
+import { useTheme } from "../context/ThemeContext";
 const CARD_ASPECT = 3 / 2;
 const CARD_MAX_WIDTH = 300;
 const HORIZONTAL_PADDING = 30;
@@ -16,9 +22,9 @@ const HORIZONTAL_PADDING = 30;
 const FeaturedHorizontalScroll = ({
   items = [],
   onItemPress,
-  title = 'Featured',
+  title = "Featured",
 }) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = Math.min(CARD_MAX_WIDTH, screenWidth - HORIZONTAL_PADDING);
   const cardHeight = cardWidth / CARD_ASPECT;
@@ -26,18 +32,11 @@ const FeaturedHorizontalScroll = ({
 
   if (!items.length) return null;
 
-  const filteredItems = items.filter((g) => g.id && (g.image || g.imageLarge));
+  const filteredItems = items.filter((g) => g.id && gameThumbUri(g));
 
   return (
     <View style={styles.section}>
-      <Text
-        style={[
-          styles.title,
-          { color: colors.textPrimary },
-        ]}
-      >
-        {title}
-      </Text>
+      <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -53,23 +52,33 @@ const FeaturedHorizontalScroll = ({
                 backgroundColor: colors.card,
                 borderColor: colors.border,
               },
-              { width: cardWidth, height: cardHeight, marginRight: index < filteredItems.length - 1 ? 16 : 0 },
+              {
+                width: cardWidth,
+                height: cardHeight,
+                marginRight: index < filteredItems.length - 1 ? 16 : 0,
+              },
               pressed && styles.cardPressed,
             ]}
             disabled={!onItemPress}
           >
-            <View style={[styles.imageWrapper, { width: cardWidth, height: imageHeight }]}>
-              <Image
-                source={{ uri: item.image || item.imageLarge }}
-                style={[styles.image, { width: cardWidth, height: imageHeight }]}
+            <View
+              style={[
+                styles.imageWrapper,
+                { width: cardWidth, height: imageHeight },
+              ]}
+            >
+              <GameImage
+                uri={gameThumbUri(item)}
+                fallbackUri={item.imageLarge}
+                style={[
+                  styles.image,
+                  { width: cardWidth, height: imageHeight },
+                ]}
                 contentFit="cover"
               />
             </View>
             <Text
-              style={[
-                styles.itemName,
-                { color: colors.textPrimary },
-              ]}
+              style={[styles.itemName, { color: colors.textPrimary }]}
               numberOfLines={2}
             >
               {item.name}
@@ -77,13 +86,10 @@ const FeaturedHorizontalScroll = ({
             <View style={styles.metaRow}>
               {(item.year != null || item.rating != null) && (
                 <Text
-                  style={[
-                    styles.itemMeta,
-                    { color: colors.textSecondary },
-                  ]}
+                  style={[styles.itemMeta, { color: colors.textSecondary }]}
                 >
                   {item.rating != null && `★ ${item.rating.toFixed(1)}`}
-                  {item.rating != null && item.year != null && ' · '}
+                  {item.rating != null && item.year != null && " · "}
                   {item.year != null && item.year}
                 </Text>
               )}
@@ -101,8 +107,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontWeight: "700",
+    color: "#1a1a1a",
     marginHorizontal: 15,
     marginTop: 14,
     marginBottom: 12,
@@ -111,13 +117,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     paddingBottom: 5,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 0.8,
     shadowRadius: 8,
@@ -127,29 +133,30 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   imageWrapper: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
   },
   image: {
+    overflow: "hidden",
   },
   itemName: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontWeight: "600",
+    color: "#1a1a1a",
     paddingHorizontal: 12,
     paddingTop: 10,
   },
   metaRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingBottom: 4,
-    marginTop: 4
+    marginTop: 4,
   },
   itemMeta: {
     flex: 1,
     fontSize: 13,
-    color: '#6B7280',
+    color: "#6B7280",
   },
 });
 

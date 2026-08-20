@@ -1,9 +1,28 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FavoritesContext = createContext(null);
 
+const STORAGE_KEY = '@gametap_favorites';
+
 export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((raw) => {
+        if (raw) {
+          try { setFavorites(JSON.parse(raw)); } catch {}
+        }
+      })
+      .finally(() => { hydrated.current = true; });
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated.current) return;
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(favorites)).catch(() => {});
+  }, [favorites]);
 
   const addFavorite = useCallback((game) => {
     if (!game) return;
