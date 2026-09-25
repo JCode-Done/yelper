@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sticky Navigation Example</title>
+  <style>
+    :root {
+      --nav-height: 72px;
+      --actions-height: 64px;
+      --sticky-offset: var(--nav-height);
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --text: #0f172a;
+      --muted: #475569;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ---- Top bar sits above the nav; the nav sticks under it, then pins to the viewport ---- */
+    .top-bar {
+      background: #0f172a;
+      color: white;
+      scroll-margin-top: 0;
+    }
+
+    .top-bar-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .top-bar p {
+      color: #cbd5e1;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .top-bar strong {
+      color: white;
+    }
+
+    /* ---- Sticky navigation (copy this block) ---- */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: var(--nav-height);
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .site-header.is-stuck {
+      box-shadow: none;
+    }
+
+    .nav-actions {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transform: translateY(-12px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    }
+
+    .site-header.is-stuck .nav-actions {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: none;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    .nav-actions-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      min-height: var(--actions-height);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .site-header.is-stuck ~ .hero .hero-actions {
+      visibility: hidden;
+    }
+
+    .nav {
+      max-width: 1100px;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .logo {
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      font-size: 1.15rem;
+      white-space: nowrap;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      display: inline-flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: #eff6ff;
+      color: var(--accent);
+    }
+
+    .nav-toggle {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .nav-toggle span,
+    .nav-toggle span::before,
+    .nav-toggle span::after {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .nav-toggle span::before,
+    .nav-toggle span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+    }
+
+    .nav-toggle span::before {
+      top: -6px;
+    }
+
+    .nav-toggle span::after {
+      top: 6px;
+    }
+
+    /* ---- Page content ---- */
+    .hero,
+    .section {
+      scroll-margin-top: calc(var(--sticky-offset) + 16px);
+    }
+
+    .hero {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 56px 24px 32px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 12px;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 16px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 1.1rem;
+      margin-bottom: 24px;
+      max-width: 36rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-ghost {
+      background: white;
+      border: 1px solid var(--border);
+    }
+
+    .hero-image,
+    .card img,
+    .gallery img {
+      width: 100%;
+      border-radius: 20px;
+      object-fit: cover;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-image {
+      height: 360px;
+    }
+
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 72px 24px;
+    }
+
+    .section h2 {
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+
+    .section p {
+      color: var(--muted);
+      margin-bottom: 28px;
+      max-width: 42rem;
+    }
+
+    .card-grid,
+    .gallery {
+      display: grid;
+      gap: 20px;
+    }
+
+    .card-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .card img {
+      height: 180px;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .card-body {
+      padding: 18px;
+    }
+
+    .card h3 {
+      margin-bottom: 8px;
+    }
+
+    .gallery {
+      grid-template-columns: 1.4fr 1fr;
+    }
+
+    .gallery img {
+      height: 280px;
+    }
+
+    .contact-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      max-width: 520px;
+    }
+
+    .contact-box label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .contact-box input,
+    .contact-box textarea {
+      width: 100%;
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font: inherit;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 24px 48px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    @media (max-width: 800px) {
+      .nav-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        padding: 12px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .site-header.open .nav-links {
+        display: flex;
+      }
+
+      .site-header.is-stuck.open .nav-links {
+        top: calc(100% + var(--actions-height));
+      }
+
+      .nav-actions-inner {
+        justify-content: stretch;
+      }
+
+      .nav-actions-inner .btn {
+        flex: 1;
+      }
+
+      .hero,
+      .card-grid,
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-image,
+      .gallery img {
+        height: 240px;
+      }
+
+      .top-bar-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Content above the nav so sticky can pin on the way down and release on the way up -->
+  <div class="top-bar" id="home">
+    <div class="top-bar-inner">
+      <p><strong>SiteName</strong> — placeholder banner above the navigation</p>
+      <p>Scroll down to pin the bar. Scroll back up to release it.</p>
+    </div>
+  </div>
+
+  <!-- Sticky navigation: copy this header into another page -->
+  <header class="site-header" id="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="logo" href="#home">Site<span>Name</span></a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="nav-actions" aria-hidden="true">
+      <div class="nav-actions-inner">
+        <a class="btn btn-primary" href="#services">See services</a>
+        <a class="btn btn-ghost" href="#contact">Contact us</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="eyebrow">Sticky nav demo</span>
+      <h1>Click a nav item and the page scrolls to that section.</h1>
+      <p class="lead">
+        The navigation sits under the top banner. Scroll down and it sticks to
+        the top of the page. Scroll back to the top and it releases into place
+        under the banner again.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#services">See services</a>
+        <a class="btn btn-ghost" href="#contact">Contact us</a>
+      </div>
+    </div>
+    <img
+      class="hero-image"
+      src="https://picsum.photos/id/1015/1200/800"
+      alt="Placeholder landscape"
+    />
+  </section>
+
+  <section class="section" id="about">
+    <h2>About</h2>
+    <p>
+      Placeholder copy for the About section. Use this block as a target for
+      the About nav item. The sticky bar remains visible while you scroll.
+    </p>
+    <div class="card-grid">
+      <article class="card">
+        <img src="https://picsum.photos/id/1011/800/500" alt="Placeholder portrait" />
+        <div class="card-body">
+          <h3>Our story</h3>
+          <p>Short placeholder text describing a company, product, or idea.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="https://picsum.photos/id/1025/800/500" alt="Placeholder animal" />
+        <div class="card-body">
+          <h3>Our values</h3>
+          <p>Another sample card so the layout feels like a real page.</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="https://picsum.photos/id/1043/800/500" alt="Placeholder architecture" />
+        <div class="card-body">
+          <h3>Our team</h3>
+          <p>Replace these images and titles with your own content later.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="services">
+    <h2>Services</h2>
+    <p>
+      Each heading below lives in the same page. The Services link in the nav
+      jumps here automatically.
+    </p>
+    <div class="card-grid">
+      <article class="card">
+        <div class="card-body">
+          <h3>Design</h3>
+          <p>Placeholder service description. Swap this with your offer.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-body">
+          <h3>Build</h3>
+          <p>Placeholder service description. Keep the card structure if you like.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-body">
+          <h3>Support</h3>
+          <p>Placeholder service description. Add pricing or details as needed.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="gallery">
+    <h2>Gallery</h2>
+    <p>Placeholder images so you can see how the Gallery anchor behaves.</p>
+    <div class="gallery">
+      <img src="https://picsum.photos/id/1036/1200/800" alt="Placeholder city" />
+      <img src="https://picsum.photos/id/1069/800/800" alt="Placeholder water" />
+      <img src="https://picsum.photos/id/1016/800/800" alt="Placeholder mountain" />
+      <img src="https://picsum.photos/id/1040/1200/800" alt="Placeholder interior" />
+    </div>
+  </section>
+
+  <section class="section" id="contact">
+    <h2>Contact</h2>
+    <p>The Contact nav item scrolls to this form. Fields are placeholders only.</p>
+    <form class="contact-box" onsubmit="event.preventDefault();">
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text" placeholder="Your name" />
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" placeholder="you@example.com" />
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="4" placeholder="How can we help?"></textarea>
+      <button class="btn btn-primary" type="submit">Send message</button>
+    </form>
+  </section>
+
+  <footer>
+    Sticky navigation example — replace placeholder copy and images with your content.
+  </footer>
+
+  <script>
+    const header = document.getElementById("site-header");
+    const toggle = document.getElementById("nav-toggle");
+    const links = document.querySelectorAll('.nav-links a[href^="#"]');
+    const sections = [...links]
+      .map((link) => document.querySelector(link.getAttribute("href")))
+      .filter(Boolean);
+
+    toggle.addEventListener("click", () => {
+      const open = header.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(open));
+    });
+
+    links.forEach((link) => {
+      link.addEventListener("click", () => {
+        header.classList.remove("open");
+        toggle.setAttribute("aria-expanded", "false");
+      });
+    });
+
+    const actions = header.querySelector(".nav-actions");
+
+    function stickyOffset() {
+      const extra = header.classList.contains("is-stuck") && actions ? actions.offsetHeight : 0;
+      return header.offsetHeight + extra;
+    }
+
+    function setStuck(stuck) {
+      header.classList.toggle("is-stuck", stuck);
+      actions.setAttribute("aria-hidden", String(!stuck));
+      requestAnimationFrame(() => {
+        document.documentElement.style.setProperty("--sticky-offset", `${stickyOffset()}px`);
+      });
+    }
+
+    function setActiveLink() {
+      const offset = stickyOffset() + 24;
+      let current = sections[0];
+      sections.forEach((section) => {
+        if (section.getBoundingClientRect().top - offset <= 0) {
+          current = section;
+        }
+      });
+      links.forEach((link) => {
+        link.classList.toggle("active", link.getAttribute("href") === `#${current.id}`);
+      });
+    }
+
+    window.addEventListener("scroll", setActiveLink, { passive: true });
+    setActiveLink();
+
+    const sentinel = document.createElement("div");
+    header.before(sentinel);
+    new IntersectionObserver(
+      ([entry]) => setStuck(!entry.isIntersecting),
+      { threshold: [1] }
+    ).observe(sentinel);
+  </script>
+</body>
+</html>
